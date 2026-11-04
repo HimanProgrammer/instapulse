@@ -38,48 +38,66 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
 .acc{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.acc label{border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:13px}
 .st{font-size:11px;padding:2px 6px;border-radius:6px;color:#fff}.st.s{background:#7048e8}.st.d{background:#f08c00}.st.p{background:#2f9e44}
 #dueBar{display:none;background:#f08c00;color:#fff;padding:10px 20px;font-size:14px}
+header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top select,header.top button{background:#352a52;color:#fff;border-color:#4a3d6b}
+.logo{font-weight:800;font-size:18px}.logo span{color:#ff5c9a}
+.topnav{display:flex;gap:4px;flex-wrap:wrap}.topnav button{background:none;border:0;color:#d9d3ec;padding:9px 14px}.topnav button.on{background:#3d3160;color:#fff}
+.shell{display:grid;grid-template-columns:220px 1fr}@media(max-width:800px){.shell{grid-template-columns:1fr}.side{display:flex;overflow-x:auto}}
+.side{background:var(--card);border-right:1px solid var(--line);padding:12px;min-height:calc(100vh - 60px)}
+.side button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:11px 12px;margin-bottom:4px;text-align:left;white-space:nowrap}
+.side button.on{background:#241a3a;color:#fff}
+.subtabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}.subtabs button{border:0;background:none;padding:10px 2px;font-size:13px;letter-spacing:.03em;border-radius:0}
+.subtabs button.on{border-bottom:3px solid var(--acc);font-weight:700}
+.plist td,.plist th{vertical-align:middle;white-space:nowrap}.plist .cap{display:flex;align-items:center;gap:8px;white-space:normal;text-align:left;max-width:300px;font-size:13px}
+.thumb{width:38px;height:38px;border-radius:8px;display:inline-grid;place-items:center;color:#fff;font-size:16px}
+.star{cursor:pointer;color:var(--mut)}.star.on{color:#f59f00}.danger{background:var(--bad);color:#fff;border:0}.danger:disabled{opacity:.4}
+.menu{position:relative}.menu .dd{display:none;position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;z-index:5;min-width:130px}
+.menu.open .dd{display:block}.menu .dd button{display:block;width:100%;border:0;text-align:left}
 </style>
 </head>
 <body>
-<header>
-  <h1>📸 Insta<span>Pulse</span> · Instagram Evolution</h1>
+<header class="top">
+  <div class="logo">◉◉ Insta<span>Pulse</span></div>
+  <nav class="topnav">
+    <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vLab">🧪 Creator Lab</button>
+  </nav>
   <div class="ctrls">
     <select id="range"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option></select>
-    <label class="small"><input type="file" id="csv" accept=".csv,.json" hidden><button onclick="csv.click()">⬆ Import CSV/JSON</button></label>
-    <button onclick="exportCsv()">⬇ Export</button>
+    <input type="file" id="csv" accept=".csv,.json" hidden><button onclick="csv.click()">⬆ Import</button>
     <button onclick="settings()">⚙ Claude key</button>
   </div>
 </header>
 <div id="dueBar"></div>
+<div class="shell">
+<nav class="side" id="side"></nav>
 <main>
 <section>
-  <div class="kpis" id="kpis"></div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="tabs" id="tabs"></div>
-    <canvas id="main"></canvas>
+ <div class="view" id="vAnalytics">
+  <div class="subtabs" id="subtabs"><button class="on" data-s="sCommunity">COMMUNITY</button><button data-s="sAccount">ACCOUNT</button><button data-s="sPosts">POSTS</button><button data-s="sReels">REELS</button></div>
+  <div id="pfNote" class="card small" style="display:none;margin-bottom:12px"></div>
+  <div class="sub" id="sCommunity">
+   <div class="kpis" id="kpis"></div>
+   <div class="card" style="margin-bottom:16px"><div class="tabs" id="tabs"></div><canvas id="main"></canvas></div>
   </div>
-  <div class="grid2">
+  <div class="sub" id="sAccount" hidden>
+   <div class="grid2">
     <div class="card"><h3>Engagement by content type</h3><canvas id="types"></canvas></div>
     <div class="card"><h3>Best days to post (avg engagement)</h3><canvas id="days"></canvas></div>
+   </div>
+   <div class="card"><h3>🔮 Growth Forecast</h3><div id="fc"></div></div>
   </div>
-  <div class="card"><h3>Posts</h3><div class="tw"><table id="posts"></table></div></div>
-  <div class="lab">
-    <div class="card"><h3>🩺 Reel Doctor<span class="badge">USP</span></h3>
-      <div class="small">Upload a screenshot of any Reel's insights (skip rate, views graph). Claude says why it underperformed and what to fix in the next one.</div>
-      <input type="file" id="shot" accept="image/*" style="margin-top:8px;width:100%">
-      <button class="pri" style="margin-top:8px" onclick="doctor()">Diagnose Reel</button>
-      <div class="out" id="docOut"></div></div>
-    <div class="card"><h3>🎣 Hook Lab<span class="badge">USP</span></h3>
-      <div class="small">Describe your next Reel in one line. Get 5 scroll-stopping hooks, on-screen text, caption and hashtags.</div>
-      <textarea id="idea" placeholder="e.g. 3 editing tricks for phone videos"></textarea>
-      <button class="pri" onclick="hooks()">Generate hooks</button>
-      <div class="out" id="hookOut"></div></div>
-    <div class="card"><h3>✅ Pre-post Score<span class="badge">Instant</span></h3>
-      <div class="small">Tick what your Reel has before posting. Aim for 80+.</div>
-      <div class="ck" id="ck"></div><div class="score" id="sc">0</div><div class="small" id="scTip"></div></div>
-    <div class="card"><h3>🔮 Growth Forecast<span class="badge">Instant</span></h3>
-      <div id="fc"></div></div>
+  <div class="sub" id="sPosts" hidden>
+   <div class="card"><h3 id="plTitle">List of posts</h3>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap">
+     <input id="pq" placeholder="🔍 Search captions" style="flex:1;min-width:180px" oninput="drawList()">
+     <button onclick="exportPosts()">⬇ Download CSV</button>
+     <button id="delSel" class="danger" onclick="delSelected()" disabled>🗑 Delete selected</button>
+    </div>
+    <div class="tw"><table id="plist" class="plist"></table></div>
+    <div class="small" style="margin-top:8px">Delete removes the post from InstaPulse (your analytics &amp; list). Instagram does not let outside apps delete posts — delete it in the Instagram app too if you want it gone there.</div>
+   </div>
   </div>
+ </div>
+ <div class="view" id="vPlanning" hidden>
   <div class="card plan"><h3>📅 Planner — schedule posts to many accounts &amp; platforms<span class="badge">New</span></h3>
    <div class="g"><div>
     <b>1. Your accounts</b>
@@ -102,6 +120,24 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
     <h3 style="margin-top:16px">Queue</h3><div class="tw"><table id="queue"></table></div>
     <div class="small" style="margin-top:6px">When a post is due you get an alert with the caption copied — post it in one tap. Auto-publishing needs a connected backend (see README).</div>
    </div></div></div>
+ </div>
+ <div class="view" id="vLab" hidden>
+  <div class="lab">
+    <div class="card"><h3>🩺 Reel Doctor<span class="badge">USP</span></h3>
+      <div class="small">Upload a screenshot of any Reel's insights (skip rate, views graph). Claude says why it underperformed and what to fix in the next one.</div>
+      <input type="file" id="shot" accept="image/*" style="margin-top:8px;width:100%">
+      <button class="pri" style="margin-top:8px" onclick="doctor()">Diagnose Reel</button>
+      <div class="out" id="docOut"></div></div>
+    <div class="card"><h3>🎣 Hook Lab<span class="badge">USP</span></h3>
+      <div class="small">Describe your next Reel in one line. Get 5 scroll-stopping hooks, on-screen text, caption and hashtags.</div>
+      <textarea id="idea" placeholder="e.g. 3 editing tricks for phone videos"></textarea>
+      <button class="pri" onclick="hooks()">Generate hooks</button>
+      <div class="out" id="hookOut"></div></div>
+    <div class="card"><h3>✅ Pre-post Score<span class="badge">Instant</span></h3>
+      <div class="small">Tick what your Reel has before posting. Aim for 80+.</div>
+      <div class="ck" id="ck"></div><div class="score" id="sc">0</div><div class="small" id="scTip"></div></div>
+  </div>
+ </div>
 </section>
 <aside class="card">
   <h3>🤖 Ask Claude about your account</h3>
@@ -116,6 +152,7 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
   <div class="small" style="margin-top:6px">Key is stored only in this browser.</div>
 </aside>
 </main>
+</div>
 <script>
 const METRICS={followers:'Followers',reach:'Reach',impressions:'Impressions',engagement:'Engagement',profileViews:'Profile views'};
 let daily=[],posts=[],metric='followers',charts={},history=[];
@@ -148,10 +185,7 @@ function render(){const {o,c,ps}=stats();
  draw('types','bar',Object.keys(T),[{label:'Avg interactions',data:Object.values(T).map(a=>Math.round(a.reduce((s,x)=>s+x,0)/a.length)),backgroundColor:'#7048e8'}]);
  const W=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],D=W.map(()=>[]);c.forEach(x=>D[new Date(x.date).getDay()].push(x.engagement));
  draw('days','bar',W,[{label:'Avg engagement',data:D.map(a=>a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length):0),backgroundColor:'#f08c00'}]);
- const cols=['date','type','caption','reach','likes','comments','saves','shares'];
- posts_sorted=ps.slice().sort((a,b)=>sortDir*((a[sortKey]>b[sortKey])-(a[sortKey]<b[sortKey])));
- document.getElementById('posts').innerHTML='<tr>'+cols.map(k=>`<th onclick="sortBy('${k}')">${k}${k===sortKey?(sortDir<0?' ↓':' ↑'):''}</th>`).join('')+'</tr>'+
-  posts_sorted.map(x=>'<tr>'+cols.map(k=>`<td>${typeof x[k]==='number'?fmt(x[k]):x[k]}</td>`).join('')+'</tr>').join('')}
+}
 let sortKey='reach',sortDir=-1,posts_sorted=[];function sortBy(k){sortDir=k===sortKey?-sortDir:-1;sortKey=k;render()}
 function draw(id,type,labels,datasets){charts[id]?.destroy();charts[id]=new Chart(document.getElementById(id),{type,data:{labels,datasets},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}}},maintainAspectRatio:false,responsive:true}});document.getElementById(id).parentElement.style.height=id==='main'?'320px':'280px'}
 range.onchange=render;
@@ -160,7 +194,7 @@ function parseCsv(t){const [h,...r]=t.trim().split(/\r?\n/).map(l=>l.split(','))
 csv.onchange=async e=>{const f=e.target.files[0];if(!f)return;const t=await f.text();
  try{if(f.name.endsWith('.json')){const j=JSON.parse(t);daily=j.daily||daily;posts=j.posts||posts}
   else{const rows=parseCsv(t);if('caption' in rows[0]||'type' in rows[0])posts=rows;else daily=rows}
-  render();alert('Imported '+f.name)}catch(err){alert('Import failed: '+err.message)}};
+  try{LS.set('ip_posts',posts)}catch{}render();alert('Imported '+f.name)}catch(err){alert('Import failed: '+err.message)}};
 function exportCsv(){const k=Object.keys(daily[0]);const b=new Blob([[k.join(','),...daily.map(r=>k.map(x=>r[x]).join(','))].join('\n')],{type:'text/csv'});
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='instagram_daily.csv';a.click()}
 // ---- Claude ----
@@ -241,6 +275,36 @@ async function aiCap(){const t=pTopic.value.trim()||pCap.value.trim();if(!t)retu
  catch(e){aiNote.textContent='⚠ '+e.message}}
 try{Notification.permission==='default'&&Notification.requestPermission()}catch{}
 drawP();checkDue();setInterval(checkDue,30000);
+// ---- Shell: views, sidebar, subtabs ----
+const PF=[['Summary','📋'],['Instagram','📸'],['Facebook','📘'],['TikTok','🎵'],['YouTube','▶️'],['LinkedIn','💼'],['Pinterest','📌']];let curPf='Instagram';
+side.innerHTML=PF.map(([n,i])=>`<button data-p="${n}" class="${n===curPf?'on':''}">${i} ${n}</button>`).join('');
+side.onclick=e=>{const b=e.target.closest('button');if(!b)return;curPf=b.dataset.p;side.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+ pfNote.style.display=curPf==='Instagram'?'none':'block';pfNote.textContent=curPf==='Summary'?'Summary shows your Instagram data. Import CSVs per platform to compare them here.':`No ${curPf} data yet — export your ${curPf} stats as CSV and use ⬆ Import. Showing Instagram meanwhile.`;show('vAnalytics')};
+function show(v){document.querySelectorAll('.view').forEach(x=>x.hidden=x.id!==v);document.querySelectorAll('.topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='vAnalytics')setTimeout(render,0)}
+document.querySelector('.topnav').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.v)};
+let subNow='sCommunity';subtabs.onclick=e=>{const b=e.target.closest('button');if(!b)return;subNow=b.dataset.s;subtabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+ const id=subNow==='sReels'?'sPosts':subNow;document.querySelectorAll('.sub').forEach(x=>x.hidden=x.id!==id);plTitle.textContent=subNow==='sReels'?'List of reels':'List of posts';render()};
+// ---- Posts list with delete ----
+const saved=LS.get('ip_posts',null);if(saved)posts=saved;
+function norm(){posts.forEach((x,i)=>{x.id??='p'+i+'_'+x.date;x.views??=Math.round(x.reach*1.6);x.time??=(8+i*7%14)+':'+String(i*13%60).padStart(2,'0')})}norm();
+const savePosts=()=>LS.set('ip_posts',posts);const TI={Reel:'🎬',Carousel:'🗂',Image:'🖼',Story:'⭕'},TC={Reel:'#d6336c',Carousel:'#7048e8',Image:'#1c7ed6',Story:'#f08c00'};
+function listRows(){const q=(pq.value||'').toLowerCase(),from=win()[0]?.date||'';return posts.filter(x=>x.date>=from&&(subNow!=='sReels'||x.type==='Reel')&&String(x.caption).toLowerCase().includes(q)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))}
+function drawList(){if(typeof pq==='undefined')return;const r=listRows();
+ plist.innerHTML=`<tr><th><input type="checkbox" id="selAll" onchange="plist.querySelectorAll('.sel').forEach(c=>c.checked=this.checked);selChg()"></th><th style="text-align:left">Post</th><th></th><th>Type</th><th style="text-align:left">Date</th><th>Reach</th><th>Views</th><th>Interactions</th><th>Likes</th><th>Saved</th><th>Shares</th><th>Comments</th></tr>`+
+ r.map(x=>{const it=x.likes+x.comments+x.saves+x.shares;return `<tr><td><input type="checkbox" class="sel" value="${x.id}" onchange="selChg()"></td>
+ <td class="cap"><span class="thumb" style="background:${TC[x.type]||'#868e96'}">${TI[x.type]||'📷'}</span> ${esc(x.caption)||'<i>Without text</i>'}</td>
+ <td><span class="star ${x.fav?'on':''}" onclick="fav('${x.id}')">★</span> <span class="menu"><button onclick="this.parentNode.classList.toggle('open')">⋮</button><span class="dd"><button onclick="copyCap('${x.id}')">📋 Copy caption</button><button onclick="delPosts(['${x.id}'])">🗑 Delete</button></span></span></td>
+ <td>${TI[x.type]||''}</td><td style="text-align:left">${new Date(x.date).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})}<br><span class="small">${x.time}</span></td>
+ <td>${fmt(x.reach)}</td><td>${fmt(x.views)}</td><td>${fmt(it)}</td><td>${fmt(x.likes)}</td><td>${fmt(x.saves)}</td><td>${fmt(x.shares)}</td><td>${fmt(x.comments)}</td></tr>`}).join('')+(r.length?'':'<tr><td colspan="12" class="small" style="text-align:center">No posts in this period</td></tr>');selChg()}
+function selChg(){const n=plist.querySelectorAll('.sel:checked').length;delSel.disabled=!n;delSel.textContent=n?`🗑 Delete selected (${n})`:'🗑 Delete selected'}
+function delPosts(ids){if(!confirm(`Delete ${ids.length} post(s) from InstaPulse? This can't be undone.`))return;posts=posts.filter(x=>!ids.includes(x.id));savePosts();render()}
+function delSelected(){delPosts([...plist.querySelectorAll('.sel:checked')].map(c=>c.value))}
+function fav(id){const x=posts.find(p=>p.id===id);x.fav=!x.fav;savePosts();drawList()}
+function copyCap(id){navigator.clipboard?.writeText(posts.find(p=>p.id===id).caption).catch(()=>{})}
+function exportPosts(){const k=['date','time','type','caption','reach','views','likes','comments','saves','shares'];const b=new Blob([[k.join(','),...listRows().map(r=>k.map(x=>'"'+String(r[x]??'').replace(/"/g,'""')+'"').join(','))].join('\n')],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='posts.csv';a.click()}
+const _r2=render;render=function(){norm();_r2();drawList()};range.onchange=()=>render();
+render();
 </script>
 </body>
 </html>
