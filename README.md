@@ -17,6 +17,7 @@ Starts with demo data. Import a CSV with columns `date,followers,reach,impressio
 - **✅ Pre-post Score** – instant 0–100 checklist score before you post (no AI, no wait).
 - **🔮 Growth Forecast** – follower projection for 30/90 days and ETA to your next milestone.
 - **Dashboard layout** – top nav (Analytics / Planning / Creator Lab), platform sidebar, Community / Account / Posts / Reels tabs. Posts list with search, star, CSV download, and delete (single via ⋮ menu or bulk via checkboxes). Deletes affect InstaPulse only; Instagram does not allow third-party apps to delete posts.
+- **Multiple Instagram accounts** – ＋ Add Instagram account in the sidebar; each account keeps its own analytics, posts and imports. Summary compares all accounts side by side. Accounts are shared with the Planner.
 - **📅 Planner** – add many accounts (e.g. 5 Instagram + TikTok, Facebook, YouTube, LinkedIn, X, Threads, Pinterest), write once, pick accounts, post all at the same time or staggered every N minutes. Types: Reel, Trial Reel, Post, Carousel, Story. ✨ button writes caption + SEO keywords + hashtags with Claude. Due posts trigger an alert/notification and copy the caption for one-tap posting.
 
 ### Auto-publishing (not included yet)
