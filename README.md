@@ -22,3 +22,19 @@ Starts with demo data. Import a CSV with columns `date,followers,reach,impressio
 
 ### Auto-publishing (not included yet)
 This is a static page, so it reminds you and copies the caption rather than posting by itself. Fully automatic posting needs a small backend with each platform's official API (e.g. Instagram Graph API — Business/Creator accounts, Meta app review) or a scheduler service such as Metricool's API.
+
+## Login with Instagram (real data)
+InstaPulse uses the official **Instagram API with Instagram Login**. It works with **Business or Creator** accounts (switch in the Instagram app: Settings → Account type). Each login adds one account; log in again to add the next (up to as many as you like).
+
+One-time setup:
+1. Go to https://developers.facebook.com/apps → **Create app** → use case **"Manage messaging & content on Instagram"**.
+2. In **Instagram → API setup with Instagram login**, copy the **Instagram app ID** and **Instagram app secret**.
+3. Under **Set up Instagram business login → Business login settings**, add the redirect URL: `https://instapulse-lime.vercel.app/api/auth/callback`.
+4. While the app is in development, add each of your Instagram accounts under **App roles → Roles → Instagram testers**, then accept the invite in Instagram (Settings → Website permissions → Apps and websites).
+5. In Vercel → instapulse → **Settings → Environment Variables** add:
+   - `IG_APP_ID` = Instagram app ID
+   - `IG_APP_SECRET` = Instagram app secret
+   - `IG_REDIRECT_URI` = `https://instapulse-lime.vercel.app/api/auth/callback`
+   Then redeploy.
+
+Tokens last 60 days and are kept in your browser only. Instagram's API cannot delete posts, so Delete only removes them from InstaPulse.
