@@ -34,6 +34,10 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
 .lab .out{white-space:pre-wrap;font-size:13px;line-height:1.5;margin-top:10px;max-height:340px;overflow-y:auto}
 .lab textarea{width:100%;height:60px;margin:6px 0}.badge{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;font-size:11px;padding:2px 6px;margin-left:6px}
 .ck label{display:block;font-size:13px;margin:4px 0}.score{font-size:30px;font-weight:800}.big{font-size:22px;font-weight:700}
+.plan{margin-top:16px}.plan .g{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:800px){.plan .g{grid-template-columns:1fr}}
+.acc{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.acc label{border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:13px}
+.st{font-size:11px;padding:2px 6px;border-radius:6px;color:#fff}.st.s{background:#7048e8}.st.d{background:#f08c00}.st.p{background:#2f9e44}
+#dueBar{display:none;background:#f08c00;color:#fff;padding:10px 20px;font-size:14px}
 </style>
 </head>
 <body>
@@ -46,6 +50,7 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
     <button onclick="settings()">⚙ Claude key</button>
   </div>
 </header>
+<div id="dueBar"></div>
 <main>
 <section>
   <div class="kpis" id="kpis"></div>
@@ -75,6 +80,28 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
     <div class="card"><h3>🔮 Growth Forecast<span class="badge">Instant</span></h3>
       <div id="fc"></div></div>
   </div>
+  <div class="card plan"><h3>📅 Planner — schedule posts to many accounts &amp; platforms<span class="badge">New</span></h3>
+   <div class="g"><div>
+    <b>1. Your accounts</b>
+    <div class="row" style="margin:6px 0"><select id="aPf"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option><option>X</option><option>Threads</option><option>Pinterest</option></select>
+     <input id="aName" placeholder="@handle" style="flex:1"><button onclick="addAcc()">+ Add</button></div>
+    <div id="accList" class="small"></div>
+    <b>2. Post</b>
+    <div class="row" style="margin:6px 0"><select id="pType"><option>Reel</option><option>Trial Reel</option><option>Post</option><option>Carousel</option><option>Story</option></select>
+     <input type="file" id="pMedia" accept="image/*,video/*" style="flex:1"></div>
+    <textarea id="pCap" style="width:100%;height:90px" placeholder="Caption…"></textarea>
+    <div class="row"><input id="pTopic" placeholder="Topic for AI (e.g. phone editing tips)" style="flex:1"><button onclick="aiCap()">✨ Caption + keywords</button></div>
+    <div class="small" id="aiNote"></div>
+   </div><div>
+    <b>3. Choose accounts</b><div class="acc" id="pick"></div>
+    <b>4. When</b>
+    <div style="margin:6px 0"><input type="datetime-local" id="pWhen"></div>
+    <div class="small"><label><input type="radio" name="mode" value="same" checked> All accounts at the same time</label><br>
+     <label><input type="radio" name="mode" value="stagger"> Different times: every <input id="gap" type="number" value="30" style="width:60px"> min</label></div>
+    <button class="pri" style="margin-top:10px" onclick="schedule()">Schedule</button>
+    <h3 style="margin-top:16px">Queue</h3><div class="tw"><table id="queue"></table></div>
+    <div class="small" style="margin-top:6px">When a post is due you get an alert with the caption copied — post it in one tap. Auto-publishing needs a connected backend (see README).</div>
+   </div></div></div>
 </section>
 <aside class="card">
   <h3>🤖 Ask Claude about your account</h3>
@@ -161,7 +188,7 @@ async function claude(messages,system,out){if(!key()){settings();if(!key())throw
  if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error?.message||r.status);
  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',acc='';
  for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
-  for(const l of ls){if(!l.startsWith('data:'))continue;try{const e=JSON.parse(l.slice(5));if(e.type==='content_block_delta'&&e.delta.text){acc+=e.delta.text;out.textContent=acc}}catch{}}}
+  for(const l of ls){if(!l.startsWith('data:'))continue;try{const e=JSON.parse(l.slice(5));if(e.type==='content_block_delta'&&e.delta.text){acc+=e.delta.text;out.tagName==="TEXTAREA"?out.value=acc:out.textContent=acc}}catch{}}}
  return acc}
 const COACH='You are a blunt, practical Instagram Reels growth coach. Use short bullet points and concrete actions. No fluff.';
 async function doctor(){const f=shot.files[0];if(!f)return alert('Choose a screenshot first');docOut.textContent='Reading screenshot…';
@@ -185,6 +212,35 @@ function forecast(){const pts=daily.slice(-30).map((d,i)=>[i,+d.followers]);cons
   ${ms?`<p>🎯 ${fmt(ms)} followers ${eta?'in ~<b>'+eta+' days</b>':'— growth is flat, focus on hooks'}</p>`:''}`}
 const _render=render;render=function(){_render();forecast()};score();
 render();
+// ---- Planner ----
+const LS={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+let accs=LS.get('ip_accs',[]),queue=LS.get('ip_queue',[]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function saveP(){LS.set('ip_accs',accs);LS.set('ip_queue',queue);drawP()}
+function addAcc(){const n=aName.value.trim();if(!n)return;accs.push({id:Date.now()+'',pf:aPf.value,name:n});aName.value='';saveP()}
+function delAcc(id){accs=accs.filter(a=>a.id!==id);saveP()}
+function drawP(){accList.innerHTML=accs.length?accs.map(a=>`${a.pf} · ${esc(a.name)} <a href="#" onclick="delAcc('${a.id}');return false">✕</a>`).join(' &nbsp;|&nbsp; '):'No accounts yet — add your 5 Instagram accounts, Facebook, TikTok…';
+ pick.innerHTML=accs.map(a=>`<label><input type="checkbox" value="${a.id}" checked> ${a.pf==='Instagram'?'📸':'🌐'} ${esc(a.name)}</label>`).join('');
+ const now=Date.now();queue.sort((a,b)=>a.at-b.at);
+ document.getElementById('queue').innerHTML='<tr><th>When</th><th>Account</th><th>Type</th><th>Caption</th><th>Status</th><th></th></tr>'+queue.map((q,i)=>{const st=q.done?'p':q.at<=now?'d':'s';
+  return `<tr><td>${new Date(q.at).toLocaleString([], {dateStyle:'short',timeStyle:'short'})}</td><td>${esc(q.acc)}</td><td>${q.type}</td><td>${esc(q.cap.slice(0,40))}…</td>
+  <td><span class="st ${st}">${st==='p'?'Posted':st==='d'?'Due':'Scheduled'}</span></td><td><button onclick="postNow(${i})">Copy</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
+function schedule(){const ids=[...pick.querySelectorAll('input:checked')].map(x=>x.value);const t=new Date(pWhen.value).getTime();
+ if(!ids.length)return alert('Pick at least one account');if(!t)return alert('Pick a date & time');if(!pCap.value.trim())return alert('Write a caption');
+ const stag=document.querySelector('input[name=mode]:checked').value==='stagger',g=(+gap.value||30)*6e4;
+ ids.forEach((id,k)=>{const a=accs.find(x=>x.id===id);queue.push({at:t+(stag?k*g:0),acc:a.pf+' '+a.name,type:pType.value,cap:pCap.value,media:pMedia.files[0]?.name||'',done:false})});
+ saveP();alert(`Scheduled ${ids.length} post(s)`)}
+function postNow(i){const q=queue[i];navigator.clipboard?.writeText(q.cap).catch(()=>{});q.done=true;saveP();
+ alert(`Caption copied ✔\nNow open ${q.acc} and post your ${q.type}${q.media?' ('+q.media+')':''}.${q.type==='Trial Reel'?'\nTip: turn on "Trial" in Instagram\'s Reel share screen so it is shown to non-followers first.':''}`)}
+function checkDue(){const due=queue.filter(q=>!q.done&&q.at<=Date.now());dueBar.style.display=due.length?'block':'none';
+ dueBar.textContent=due.length?`⏰ ${due.length} post(s) due now: ${due.map(q=>q.acc).join(', ')} — press Copy in the Queue to post.`:'';
+ due.filter(q=>!q.notified).forEach(q=>{q.notified=true;try{Notification.permission==='granted'&&new Notification('InstaPulse: time to post',{body:q.acc+' · '+q.type})}catch{}});LS.set('ip_queue',queue);drawP()}
+async function aiCap(){const t=pTopic.value.trim()||pCap.value.trim();if(!t)return alert('Enter a topic');aiNote.textContent='Writing…';
+ const pfs=[...new Set(accs.map(a=>a.pf))].join(', ')||'Instagram';
+ try{await claude([{role:'user',content:`Write a ${pType.value} caption about: ${t}. Platforms: ${pfs}. Line 1 = scroll-stopping hook. Then 2-3 short lines, a CTA (save/share/comment), then 8 SEO keywords as a line starting "Keywords:", then 5 niche hashtags. Output only the caption text.`}],COACH,pCap);aiNote.textContent='Done — edit as you like.'}
+ catch(e){aiNote.textContent='⚠ '+e.message}}
+try{Notification.permission==='default'&&Notification.requestPermission()}catch{}
+drawP();checkDue();setInterval(checkDue,30000);
 </script>
 </body>
 </html>
