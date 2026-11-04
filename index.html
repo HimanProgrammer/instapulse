@@ -30,6 +30,10 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
 .m{padding:9px 12px;border-radius:10px;font-size:14px;line-height:1.45;white-space:pre-wrap}.m.u{background:var(--acc2);color:#fff;align-self:flex-end;max-width:85%}.m.a{background:var(--bg);border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{font-size:12px;padding:5px 8px}
 .row{display:flex;gap:6px}.row textarea{flex:1;resize:none;height:44px}.small{font-size:12px;color:var(--mut)}
+.lab{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:16px}
+.lab .out{white-space:pre-wrap;font-size:13px;line-height:1.5;margin-top:10px;max-height:340px;overflow-y:auto}
+.lab textarea{width:100%;height:60px;margin:6px 0}.badge{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;font-size:11px;padding:2px 6px;margin-left:6px}
+.ck label{display:block;font-size:13px;margin:4px 0}.score{font-size:30px;font-weight:800}.big{font-size:22px;font-weight:700}
 </style>
 </head>
 <body>
@@ -54,6 +58,23 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
     <div class="card"><h3>Best days to post (avg engagement)</h3><canvas id="days"></canvas></div>
   </div>
   <div class="card"><h3>Posts</h3><div class="tw"><table id="posts"></table></div></div>
+  <div class="lab">
+    <div class="card"><h3>🩺 Reel Doctor<span class="badge">USP</span></h3>
+      <div class="small">Upload a screenshot of any Reel's insights (skip rate, views graph). Claude says why it underperformed and what to fix in the next one.</div>
+      <input type="file" id="shot" accept="image/*" style="margin-top:8px;width:100%">
+      <button class="pri" style="margin-top:8px" onclick="doctor()">Diagnose Reel</button>
+      <div class="out" id="docOut"></div></div>
+    <div class="card"><h3>🎣 Hook Lab<span class="badge">USP</span></h3>
+      <div class="small">Describe your next Reel in one line. Get 5 scroll-stopping hooks, on-screen text, caption and hashtags.</div>
+      <textarea id="idea" placeholder="e.g. 3 editing tricks for phone videos"></textarea>
+      <button class="pri" onclick="hooks()">Generate hooks</button>
+      <div class="out" id="hookOut"></div></div>
+    <div class="card"><h3>✅ Pre-post Score<span class="badge">Instant</span></h3>
+      <div class="small">Tick what your Reel has before posting. Aim for 80+.</div>
+      <div class="ck" id="ck"></div><div class="score" id="sc">0</div><div class="small" id="scTip"></div></div>
+    <div class="card"><h3>🔮 Growth Forecast<span class="badge">Instant</span></h3>
+      <div id="fc"></div></div>
+  </div>
 </section>
 <aside class="card">
   <h3>🤖 Ask Claude about your account</h3>
@@ -132,6 +153,37 @@ async function ask(text){text=(text||'').trim();if(!text)return;q.value='';if(!k
   history.push({role:'assistant',content:acc})}
  catch(err){out.textContent='⚠ '+err.message;history.pop()}}
 q.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(q.value)}};
+
+// ---- shared Claude call ----
+async function claude(messages,system,out){if(!key()){settings();if(!key())throw new Error('Add your Claude key with ⚙')}
+ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+  body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:1500,stream:true,system,messages})});
+ if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error?.message||r.status);
+ const rd=r.body.getReader(),dec=new TextDecoder();let buf='',acc='';
+ for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
+  for(const l of ls){if(!l.startsWith('data:'))continue;try{const e=JSON.parse(l.slice(5));if(e.type==='content_block_delta'&&e.delta.text){acc+=e.delta.text;out.textContent=acc}}catch{}}}
+ return acc}
+const COACH='You are a blunt, practical Instagram Reels growth coach. Use short bullet points and concrete actions. No fluff.';
+async function doctor(){const f=shot.files[0];if(!f)return alert('Choose a screenshot first');docOut.textContent='Reading screenshot…';
+ const b64=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(f)});
+ try{await claude([{role:'user',content:[{type:'image',source:{type:'base64',media_type:f.type||'image/jpeg',data:b64}},
+  {type:'text',text:'This is my Reel insights screenshot. 1) Read the key numbers. 2) Diagnose the #1 reason it underperformed (skip rate = first ~3s). 3) Give a fix list for my NEXT reel: hook, on-screen text, length, ending CTA, caption. 4) A target number for each metric.'}]}],COACH,docOut)}
+ catch(e){docOut.textContent='⚠ '+e.message}}
+async function hooks(){const t=idea.value.trim();if(!t)return;hookOut.textContent='Thinking…';
+ try{await claude([{role:'user',content:'Reel idea: '+t+'\nGive: 5 hooks (first 1s, under 8 words), on-screen text for second 0, a 7-15s shot list, caption (first line = hook), 5 niche hashtags, ending CTA.'}],COACH,hookOut)}
+ catch(e){hookOut.textContent='⚠ '+e.message}}
+const CK=[['Best moment / result in first frame',20],['Bold text on screen in 1st second',15],['Motion or cut within 1 second',10],['Length 7–15 seconds',10],['Captions for muted viewers',10],['Ending CTA (save / share / comment)',15],['Loops back to start',5],['Caption line 1 = hook',5],['3–5 niche hashtags',5],['Cover with title text',5]];
+ck.innerHTML=CK.map((c,i)=>`<label><input type="checkbox" data-w="${c[1]}" onchange="score()"> ${c[0]} <span class="small">+${c[1]}</span></label>`).join('');
+function score(){const s=[...ck.querySelectorAll('input:checked')].reduce((a,x)=>a+ +x.dataset.w,0);sc.textContent=s+'/100';
+ sc.style.color=s>=80?'var(--ok)':s>=50?'#f08c00':'var(--bad)';scTip.textContent=s>=80?'Ready to post 🚀':s>=50?'Close — fix the hook items first':'High skip-rate risk: fix the first 3 seconds'}
+function forecast(){const pts=daily.slice(-30).map((d,i)=>[i,+d.followers]);const n=pts.length;if(n<2)return;
+ const mx=pts.reduce((a,p)=>a+p[0],0)/n,my=pts.reduce((a,p)=>a+p[1],0)/n;
+ const m=pts.reduce((a,p)=>a+(p[0]-mx)*(p[1]-my),0)/pts.reduce((a,p)=>a+(p[0]-mx)**2,0)||0;const now=pts.at(-1)[1];
+ const ms=[1e3,5e3,1e4,2.5e4,5e4,1e5,2.5e5,5e5,1e6].find(x=>x>now);const eta=m>0&&ms?Math.ceil((ms-now)/m):null;
+ fc.innerHTML=`<div class="small">Based on your last 30 days (${m>=0?'+':''}${m.toFixed(1)} followers/day)</div>
+  <p>In 30 days: <span class="big">${fmt(Math.round(now+m*30))}</span></p><p>In 90 days: <span class="big">${fmt(Math.round(now+m*90))}</span></p>
+  ${ms?`<p>🎯 ${fmt(ms)} followers ${eta?'in ~<b>'+eta+' days</b>':'— growth is flat, focus on hooks'}</p>`:''}`}
+const _render=render;render=function(){_render();forecast()};score();
 render();
 </script>
 </body>
