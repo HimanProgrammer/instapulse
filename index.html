@@ -30,30 +30,115 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
 .m{padding:9px 12px;border-radius:10px;font-size:14px;line-height:1.45;white-space:pre-wrap}.m.u{background:var(--acc2);color:#fff;align-self:flex-end;max-width:85%}.m.a{background:var(--bg);border:1px solid var(--line)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{font-size:12px;padding:5px 8px}
 .row{display:flex;gap:6px}.row textarea{flex:1;resize:none;height:44px}.small{font-size:12px;color:var(--mut)}
+.lab{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:16px}
+.lab .out{white-space:pre-wrap;font-size:13px;line-height:1.5;margin-top:10px;max-height:340px;overflow-y:auto}
+.lab textarea{width:100%;height:60px;margin:6px 0}.badge{display:inline-block;background:var(--acc);color:#fff;border-radius:6px;font-size:11px;padding:2px 6px;margin-left:6px}
+.ck label{display:block;font-size:13px;margin:4px 0}.score{font-size:30px;font-weight:800}.big{font-size:22px;font-weight:700}
+.plan{margin-top:16px}.plan .g{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:800px){.plan .g{grid-template-columns:1fr}}
+.acc{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}.acc label{border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:13px}
+.st{font-size:11px;padding:2px 6px;border-radius:6px;color:#fff}.st.s{background:#7048e8}.st.d{background:#f08c00}.st.p{background:#2f9e44}
+#dueBar{display:none;background:#f08c00;color:#fff;padding:10px 20px;font-size:14px}
+header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top select,header.top button{background:#352a52;color:#fff;border-color:#4a3d6b}
+.logo{font-weight:800;font-size:18px}.logo span{color:#ff5c9a}
+.topnav{display:flex;gap:4px;flex-wrap:wrap}.topnav button{background:none;border:0;color:#d9d3ec;padding:9px 14px}.topnav button.on{background:#3d3160;color:#fff}
+.shell{display:grid;grid-template-columns:220px 1fr}@media(max-width:800px){.shell{grid-template-columns:1fr}.side{display:flex;overflow-x:auto}}
+.side{background:var(--card);border-right:1px solid var(--line);padding:12px;min-height:calc(100vh - 60px)}
+.side button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:11px 12px;margin-bottom:4px;text-align:left;white-space:nowrap}
+.side button.on{background:#241a3a;color:#fff}
+.subtabs{display:flex;gap:18px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}.subtabs button{border:0;background:none;padding:10px 2px;font-size:13px;letter-spacing:.03em;border-radius:0}
+.subtabs button.on{border-bottom:3px solid var(--acc);font-weight:700}
+.plist td,.plist th{vertical-align:middle;white-space:nowrap}.plist .cap{display:flex;align-items:center;gap:8px;white-space:normal;text-align:left;max-width:300px;font-size:13px}
+.thumb{width:38px;height:38px;border-radius:8px;display:inline-grid;place-items:center;color:#fff;font-size:16px}
+.star{cursor:pointer;color:var(--mut)}.star.on{color:#f59f00}.danger{background:var(--bad);color:#fff;border:0}.danger:disabled{opacity:.4}
+.menu{position:relative}.menu .dd{display:none;position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;z-index:5;min-width:130px}
+.menu.open .dd{display:block}.menu .dd button{display:block;width:100%;border:0;text-align:left}
+.side .sub-acc{padding:7px 12px 7px 30px;font-size:13px}.side .sub-acc.add{color:var(--acc)}.side .x{margin-left:auto;opacity:.6}
 </style>
 </head>
 <body>
-<header>
-  <h1>📸 Insta<span>Pulse</span> · Instagram Evolution</h1>
+<header class="top">
+  <div class="logo">◉◉ Insta<span>Pulse</span></div>
+  <nav class="topnav">
+    <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vLab">🧪 Creator Lab</button>
+  </nav>
   <div class="ctrls">
     <select id="range"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option></select>
-    <label class="small"><input type="file" id="csv" accept=".csv,.json" hidden><button onclick="csv.click()">⬆ Import CSV/JSON</button></label>
-    <button onclick="exportCsv()">⬇ Export</button>
+    <input type="file" id="csv" accept=".csv,.json" hidden><button onclick="csv.click()">⬆ Import</button>
     <button onclick="settings()">⚙ Claude key</button>
   </div>
 </header>
+<div id="dueBar"></div>
+<div class="shell">
+<nav class="side" id="side"></nav>
 <main>
 <section>
-  <div class="kpis" id="kpis"></div>
-  <div class="card" style="margin-bottom:16px">
-    <div class="tabs" id="tabs"></div>
-    <canvas id="main"></canvas>
+ <div class="view" id="vAnalytics">
+  <div class="subtabs" id="subtabs"><button class="on" data-s="sCommunity">COMMUNITY</button><button data-s="sAccount">ACCOUNT</button><button data-s="sPosts">POSTS</button><button data-s="sReels">REELS</button></div>
+  <div id="pfNote" class="card small" style="display:none;margin-bottom:12px"></div>
+  <div class="sub" id="sCommunity">
+   <div class="kpis" id="kpis"></div>
+   <div class="card" style="margin-bottom:16px"><div class="tabs" id="tabs"></div><canvas id="main"></canvas></div>
   </div>
-  <div class="grid2">
+  <div class="sub" id="sAccount" hidden>
+   <div class="grid2">
     <div class="card"><h3>Engagement by content type</h3><canvas id="types"></canvas></div>
     <div class="card"><h3>Best days to post (avg engagement)</h3><canvas id="days"></canvas></div>
+   </div>
+   <div class="card"><h3>🔮 Growth Forecast</h3><div id="fc"></div></div>
   </div>
-  <div class="card"><h3>Posts</h3><div class="tw"><table id="posts"></table></div></div>
+  <div class="sub" id="sPosts" hidden>
+   <div class="card"><h3 id="plTitle">List of posts</h3>
+    <div class="row" style="margin-bottom:10px;flex-wrap:wrap">
+     <input id="pq" placeholder="🔍 Search captions" style="flex:1;min-width:180px" oninput="drawList()">
+     <button onclick="exportPosts()">⬇ Download CSV</button>
+     <button id="delSel" class="danger" onclick="delSelected()" disabled>🗑 Delete selected</button>
+    </div>
+    <div class="tw"><table id="plist" class="plist"></table></div>
+    <div class="small" style="margin-top:8px">Delete removes the post from InstaPulse (your analytics &amp; list). Instagram does not let outside apps delete posts — delete it in the Instagram app too if you want it gone there.</div>
+   </div>
+  </div>
+ </div>
+ <div class="view" id="vPlanning" hidden>
+  <div class="card plan"><h3>📅 Planner — schedule posts to many accounts &amp; platforms<span class="badge">New</span></h3>
+   <div class="g"><div>
+    <b>1. Your accounts</b>
+    <div class="row" style="margin:6px 0"><select id="aPf"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option><option>X</option><option>Threads</option><option>Pinterest</option></select>
+     <input id="aName" placeholder="@handle" style="flex:1"><button onclick="addAcc()">+ Add</button></div>
+    <div id="accList" class="small"></div>
+    <b>2. Post</b>
+    <div class="row" style="margin:6px 0"><select id="pType"><option>Reel</option><option>Trial Reel</option><option>Post</option><option>Carousel</option><option>Story</option></select>
+     <input type="file" id="pMedia" accept="image/*,video/*" style="flex:1"></div>
+    <textarea id="pCap" style="width:100%;height:90px" placeholder="Caption…"></textarea>
+    <div class="row"><input id="pTopic" placeholder="Topic for AI (e.g. phone editing tips)" style="flex:1"><button onclick="aiCap()">✨ Caption + keywords</button></div>
+    <div class="small" id="aiNote"></div>
+   </div><div>
+    <b>3. Choose accounts</b><div class="acc" id="pick"></div>
+    <b>4. When</b>
+    <div style="margin:6px 0"><input type="datetime-local" id="pWhen"></div>
+    <div class="small"><label><input type="radio" name="mode" value="same" checked> All accounts at the same time</label><br>
+     <label><input type="radio" name="mode" value="stagger"> Different times: every <input id="gap" type="number" value="30" style="width:60px"> min</label></div>
+    <button class="pri" style="margin-top:10px" onclick="schedule()">Schedule</button>
+    <h3 style="margin-top:16px">Queue</h3><div class="tw"><table id="queue"></table></div>
+    <div class="small" style="margin-top:6px">When a post is due you get an alert with the caption copied — post it in one tap. Auto-publishing needs a connected backend (see README).</div>
+   </div></div></div>
+ </div>
+ <div class="view" id="vLab" hidden>
+  <div class="lab">
+    <div class="card"><h3>🩺 Reel Doctor<span class="badge">USP</span></h3>
+      <div class="small">Upload a screenshot of any Reel's insights (skip rate, views graph). Claude says why it underperformed and what to fix in the next one.</div>
+      <input type="file" id="shot" accept="image/*" style="margin-top:8px;width:100%">
+      <button class="pri" style="margin-top:8px" onclick="doctor()">Diagnose Reel</button>
+      <div class="out" id="docOut"></div></div>
+    <div class="card"><h3>🎣 Hook Lab<span class="badge">USP</span></h3>
+      <div class="small">Describe your next Reel in one line. Get 5 scroll-stopping hooks, on-screen text, caption and hashtags.</div>
+      <textarea id="idea" placeholder="e.g. 3 editing tricks for phone videos"></textarea>
+      <button class="pri" onclick="hooks()">Generate hooks</button>
+      <div class="out" id="hookOut"></div></div>
+    <div class="card"><h3>✅ Pre-post Score<span class="badge">Instant</span></h3>
+      <div class="small">Tick what your Reel has before posting. Aim for 80+.</div>
+      <div class="ck" id="ck"></div><div class="score" id="sc">0</div><div class="small" id="scTip"></div></div>
+  </div>
+ </div>
 </section>
 <aside class="card">
   <h3>🤖 Ask Claude about your account</h3>
@@ -68,6 +153,7 @@ aside{display:flex;flex-direction:column;height:calc(100vh - 100px);position:sti
   <div class="small" style="margin-top:6px">Key is stored only in this browser.</div>
 </aside>
 </main>
+</div>
 <script>
 const METRICS={followers:'Followers',reach:'Reach',impressions:'Impressions',engagement:'Engagement',profileViews:'Profile views'};
 let daily=[],posts=[],metric='followers',charts={},history=[];
@@ -88,7 +174,7 @@ function stats(){const c=win(),p=win(1),from=c[0]?.date,ps=posts.filter(x=>x.dat
  const v=(a,k)=>k==='followers'?(a.at(-1)?.[k]||0):sum(a,k);
  const o={};for(const k in METRICS)o[k]={now:v(c,k),prev:v(p,k)};
  o.followersGained={now:(c.at(-1)?.followers||0)-(c[0]?.followers||0)};o.posts=ps.length;
- const er=ps.length?ps.reduce((s,x)=>s+(x.likes+x.comments+x.saves+x.shares)/x.reach,0)/ps.length*100:0;o.er=er;return {o,c,ps}}
+ const er=ps.length?ps.reduce((s,x)=>s+(x.likes+x.comments+x.saves+x.shares)/(x.reach||1),0)/ps.length*100:0;o.er=er;return {o,c,ps}}
 function render(){const {o,c,ps}=stats();
  kpis.innerHTML=Object.keys(METRICS).map(k=>{const d=o[k].prev?((o[k].now-o[k].prev)/o[k].prev*100):0;
   return `<div class="card kpi"><div class="l">${METRICS[k]}</div><div class="v">${fmt(o[k].now)}</div><div class="d ${d>=0?'up':'dn'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(1)}% vs prev</div></div>`}).join('')+
@@ -100,10 +186,7 @@ function render(){const {o,c,ps}=stats();
  draw('types','bar',Object.keys(T),[{label:'Avg interactions',data:Object.values(T).map(a=>Math.round(a.reduce((s,x)=>s+x,0)/a.length)),backgroundColor:'#7048e8'}]);
  const W=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],D=W.map(()=>[]);c.forEach(x=>D[new Date(x.date).getDay()].push(x.engagement));
  draw('days','bar',W,[{label:'Avg engagement',data:D.map(a=>a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length):0),backgroundColor:'#f08c00'}]);
- const cols=['date','type','caption','reach','likes','comments','saves','shares'];
- posts_sorted=ps.slice().sort((a,b)=>sortDir*((a[sortKey]>b[sortKey])-(a[sortKey]<b[sortKey])));
- document.getElementById('posts').innerHTML='<tr>'+cols.map(k=>`<th onclick="sortBy('${k}')">${k}${k===sortKey?(sortDir<0?' ↓':' ↑'):''}</th>`).join('')+'</tr>'+
-  posts_sorted.map(x=>'<tr>'+cols.map(k=>`<td>${typeof x[k]==='number'?fmt(x[k]):x[k]}</td>`).join('')+'</tr>').join('')}
+}
 let sortKey='reach',sortDir=-1,posts_sorted=[];function sortBy(k){sortDir=k===sortKey?-sortDir:-1;sortKey=k;render()}
 function draw(id,type,labels,datasets){charts[id]?.destroy();charts[id]=new Chart(document.getElementById(id),{type,data:{labels,datasets},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}}},maintainAspectRatio:false,responsive:true}});document.getElementById(id).parentElement.style.height=id==='main'?'320px':'280px'}
 range.onchange=render;
@@ -112,7 +195,7 @@ function parseCsv(t){const [h,...r]=t.trim().split(/\r?\n/).map(l=>l.split(','))
 csv.onchange=async e=>{const f=e.target.files[0];if(!f)return;const t=await f.text();
  try{if(f.name.endsWith('.json')){const j=JSON.parse(t);daily=j.daily||daily;posts=j.posts||posts}
   else{const rows=parseCsv(t);if('caption' in rows[0]||'type' in rows[0])posts=rows;else daily=rows}
-  render();alert('Imported '+f.name)}catch(err){alert('Import failed: '+err.message)}};
+  norm();savePosts();render();alert('Imported '+f.name)}catch(err){alert('Import failed: '+err.message)}};
 function exportCsv(){const k=Object.keys(daily[0]);const b=new Blob([[k.join(','),...daily.map(r=>k.map(x=>r[x]).join(','))].join('\n')],{type:'text/csv'});
  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='instagram_daily.csv';a.click()}
 // ---- Claude ----
@@ -132,7 +215,128 @@ async function ask(text){text=(text||'').trim();if(!text)return;q.value='';if(!k
   history.push({role:'assistant',content:acc})}
  catch(err){out.textContent='⚠ '+err.message;history.pop()}}
 q.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(q.value)}};
+
+// ---- shared Claude call ----
+async function claude(messages,system,out){if(!key()){settings();if(!key())throw new Error('Add your Claude key with ⚙')}
+ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+  body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:1500,stream:true,system,messages})});
+ if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error?.message||r.status);
+ const rd=r.body.getReader(),dec=new TextDecoder();let buf='',acc='';
+ for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
+  for(const l of ls){if(!l.startsWith('data:'))continue;try{const e=JSON.parse(l.slice(5));if(e.type==='content_block_delta'&&e.delta.text){acc+=e.delta.text;out.tagName==="TEXTAREA"?out.value=acc:out.textContent=acc}}catch{}}}
+ return acc}
+const COACH='You are a blunt, practical Instagram Reels growth coach. Use short bullet points and concrete actions. No fluff.';
+async function doctor(){const f=shot.files[0];if(!f)return alert('Choose a screenshot first');docOut.textContent='Reading screenshot…';
+ const b64=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result.split(',')[1]);fr.readAsDataURL(f)});
+ try{await claude([{role:'user',content:[{type:'image',source:{type:'base64',media_type:f.type||'image/jpeg',data:b64}},
+  {type:'text',text:'This is my Reel insights screenshot. 1) Read the key numbers. 2) Diagnose the #1 reason it underperformed (skip rate = first ~3s). 3) Give a fix list for my NEXT reel: hook, on-screen text, length, ending CTA, caption. 4) A target number for each metric.'}]}],COACH,docOut)}
+ catch(e){docOut.textContent='⚠ '+e.message}}
+async function hooks(){const t=idea.value.trim();if(!t)return;hookOut.textContent='Thinking…';
+ try{await claude([{role:'user',content:'Reel idea: '+t+'\nGive: 5 hooks (first 1s, under 8 words), on-screen text for second 0, a 7-15s shot list, caption (first line = hook), 5 niche hashtags, ending CTA.'}],COACH,hookOut)}
+ catch(e){hookOut.textContent='⚠ '+e.message}}
+const CK=[['Best moment / result in first frame',20],['Bold text on screen in 1st second',15],['Motion or cut within 1 second',10],['Length 7–15 seconds',10],['Captions for muted viewers',10],['Ending CTA (save / share / comment)',15],['Loops back to start',5],['Caption line 1 = hook',5],['3–5 niche hashtags',5],['Cover with title text',5]];
+ck.innerHTML=CK.map((c,i)=>`<label><input type="checkbox" data-w="${c[1]}" onchange="score()"> ${c[0]} <span class="small">+${c[1]}</span></label>`).join('');
+function score(){const s=[...ck.querySelectorAll('input:checked')].reduce((a,x)=>a+ +x.dataset.w,0);sc.textContent=s+'/100';
+ sc.style.color=s>=80?'var(--ok)':s>=50?'#f08c00':'var(--bad)';scTip.textContent=s>=80?'Ready to post 🚀':s>=50?'Close — fix the hook items first':'High skip-rate risk: fix the first 3 seconds'}
+function forecast(){const pts=daily.slice(-30).map((d,i)=>[i,+d.followers]);const n=pts.length;if(n<2)return;
+ const mx=pts.reduce((a,p)=>a+p[0],0)/n,my=pts.reduce((a,p)=>a+p[1],0)/n;
+ const m=pts.reduce((a,p)=>a+(p[0]-mx)*(p[1]-my),0)/pts.reduce((a,p)=>a+(p[0]-mx)**2,0)||0;const now=pts.at(-1)[1];
+ const ms=[1e3,5e3,1e4,2.5e4,5e4,1e5,2.5e5,5e5,1e6].find(x=>x>now);const eta=m>0&&ms?Math.ceil((ms-now)/m):null;
+ fc.innerHTML=`<div class="small">Based on your last 30 days (${m>=0?'+':''}${m.toFixed(1)} followers/day)</div>
+  <p>In 30 days: <span class="big">${fmt(Math.round(now+m*30))}</span></p><p>In 90 days: <span class="big">${fmt(Math.round(now+m*90))}</span></p>
+  ${ms?`<p>🎯 ${fmt(ms)} followers ${eta?'in ~<b>'+eta+' days</b>':'— growth is flat, focus on hooks'}</p>`:''}`}
+const _render=render;render=function(){_render();forecast()};score();
 render();
+// ---- Planner ----
+const LS={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
+let accs=LS.get('ip_accs',[]),queue=LS.get('ip_queue',[]);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function saveP(){LS.set('ip_accs',accs);LS.set('ip_queue',queue);drawP()}
+function addAcc(){const n=aName.value.trim();if(!n)return;accs.push({id:Date.now()+'',pf:aPf.value,name:n});aName.value='';saveP()}
+function delAcc(id){accs=accs.filter(a=>a.id!==id);saveP()}
+function drawP(){accList.innerHTML=accs.length?accs.map(a=>`${a.pf} · ${esc(a.name)} <a href="#" onclick="delAcc('${a.id}');return false">✕</a>`).join(' &nbsp;|&nbsp; '):'No accounts yet — add your 5 Instagram accounts, Facebook, TikTok…';
+ pick.innerHTML=accs.map(a=>`<label><input type="checkbox" value="${a.id}" checked> ${a.pf==='Instagram'?'📸':'🌐'} ${esc(a.name)}</label>`).join('');
+ const now=Date.now();queue.sort((a,b)=>a.at-b.at);
+ document.getElementById('queue').innerHTML='<tr><th>When</th><th>Account</th><th>Type</th><th>Caption</th><th>Status</th><th></th></tr>'+queue.map((q,i)=>{const st=q.done?'p':q.at<=now?'d':'s';
+  return `<tr><td>${new Date(q.at).toLocaleString([], {dateStyle:'short',timeStyle:'short'})}</td><td>${esc(q.acc)}</td><td>${q.type}</td><td>${esc(q.cap.slice(0,40))}…</td>
+  <td><span class="st ${st}">${st==='p'?'Posted':st==='d'?'Due':'Scheduled'}</span></td><td><button onclick="postNow(${i})">Copy</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
+function schedule(){const ids=[...pick.querySelectorAll('input:checked')].map(x=>x.value);const t=new Date(pWhen.value).getTime();
+ if(!ids.length)return alert('Pick at least one account');if(!t)return alert('Pick a date & time');if(!pCap.value.trim())return alert('Write a caption');
+ const stag=document.querySelector('input[name=mode]:checked').value==='stagger',g=(+gap.value||30)*6e4;
+ ids.forEach((id,k)=>{const a=accs.find(x=>x.id===id);queue.push({at:t+(stag?k*g:0),acc:a.pf+' '+a.name,type:pType.value,cap:pCap.value,media:pMedia.files[0]?.name||'',done:false})});
+ saveP();alert(`Scheduled ${ids.length} post(s)`)}
+function postNow(i){const q=queue[i];navigator.clipboard?.writeText(q.cap).catch(()=>{});q.done=true;saveP();
+ alert(`Caption copied ✔\nNow open ${q.acc} and post your ${q.type}${q.media?' ('+q.media+')':''}.${q.type==='Trial Reel'?'\nTip: turn on "Trial" in Instagram\'s Reel share screen so it is shown to non-followers first.':''}`)}
+function checkDue(){const due=queue.filter(q=>!q.done&&q.at<=Date.now());dueBar.style.display=due.length?'block':'none';
+ dueBar.textContent=due.length?`⏰ ${due.length} post(s) due now: ${due.map(q=>q.acc).join(', ')} — press Copy in the Queue to post.`:'';
+ due.filter(q=>!q.notified).forEach(q=>{q.notified=true;try{Notification.permission==='granted'&&new Notification('InstaPulse: time to post',{body:q.acc+' · '+q.type})}catch{}});LS.set('ip_queue',queue);drawP()}
+async function aiCap(){const t=pTopic.value.trim()||pCap.value.trim();if(!t)return alert('Enter a topic');aiNote.textContent='Writing…';
+ const pfs=[...new Set(accs.map(a=>a.pf))].join(', ')||'Instagram';
+ try{await claude([{role:'user',content:`Write a ${pType.value} caption about: ${t}. Platforms: ${pfs}. Line 1 = scroll-stopping hook. Then 2-3 short lines, a CTA (save/share/comment), then 8 SEO keywords as a line starting "Keywords:", then 5 niche hashtags. Output only the caption text.`}],COACH,pCap);aiNote.textContent='Done — edit as you like.'}
+ catch(e){aiNote.textContent='⚠ '+e.message}}
+try{Notification.permission==='default'&&Notification.requestPermission()}catch{}
+drawP();checkDue();setInterval(checkDue,30000);
+// ---- Shell: views, sidebar, subtabs ----
+const PF=[['Summary','📋'],['Instagram','📸'],['Facebook','📘'],['TikTok','🎵'],['YouTube','▶️'],['LinkedIn','💼'],['Pinterest','📌']];let curPf='Instagram';
+let curAcc=LS.get('ip_cur','demo');
+const igAccs=()=>accs.filter(a=>a.pf==='Instagram');
+function drawSide(){const ig=igAccs();
+ side.innerHTML=PF.map(([n,i])=>`<button data-p="${n}" class="${n===curPf&&!(n==='Instagram'&&ig.length)?'on':''}">${i} ${n}</button>`+(n==='Instagram'?
+  (ig.length?ig:[{id:'demo',name:'Demo account'}]).map(a=>`<button class="sub-acc ${curPf==='Instagram'&&curAcc===a.id?'on':''}" data-a="${a.id}">↳ ${esc(a.name)}${a.id!=='demo'?` <span class="x" data-del="${a.id}">✕</span>`:''}</button>`).join('')+
+  `<button class="sub-acc add" data-login="1">🔐 Login with Instagram</button><button class="sub-acc add" data-add="1">＋ Add manually (CSV)</button>`:'')).join('')}
+function addIg(){const n=(prompt('Instagram handle (e.g. @mybrand):')||'').trim();if(!n)return;const id='ig'+Date.now();accs.push({id,pf:'Instagram',name:n.startsWith('@')?n:'@'+n});saveP();switchAcc(id)}
+function delIg(id){const a=accs.find(x=>x.id===id);if(!confirm(`Remove ${a.name} and its data from InstaPulse?`))return;accs=accs.filter(x=>x.id!==id);try{localStorage.removeItem('ip_data_'+id)}catch{}saveP();
+ if(curAcc===id)switchAcc(igAccs()[0]?.id||'demo');else drawSide()}
+function switchAcc(id){curAcc=id;LS.set('ip_cur',id);const d=LS.get('ip_data_'+id,null);const A=accs.find(x=>x.id===id);
+ if(A?.token&&(!d||Date.now()-(d.at||0)>36e5))return syncIg(id);
+ if(d){daily=d.daily;posts=d.posts}else{const g=demo();daily=g.d;posts=g.p;norm();savePosts()}
+ curPf='Instagram';pfNote.style.display=id==='demo'||!d||A?.token?'block':'none';
+ if(A?.token){pfNote.innerHTML=`🟢 Live from Instagram · ${esc(A.name)} · updated ${new Date(d.at).toLocaleTimeString()} <button onclick="syncIg('${id}')">⟳ Refresh</button>`}else pfNote.textContent=id==='demo'?'Demo data. Click ＋ Add Instagram account to add your accounts.':`Sample data for ${accs.find(x=>x.id===id)?.name}. Use ⬆ Import to load this account's real CSV export.`;
+ drawSide();show('vAnalytics')}
+function compare(){const rows=(igAccs().length?igAccs():[{id:'demo',name:'Demo account'}]).map(a=>{const d=LS.get('ip_data_'+a.id,null);if(!d)return `<tr><td>${esc(a.name)}</td><td colspan="4" class="small">no data yet — open it once</td></tr>`;
+  const dl=d.daily.slice(-days()),ps=d.posts.filter(x=>x.date>=(dl[0]?.date||''));const f=+dl.at(-1)?.followers||0,g=f-(+dl[0]?.followers||0),r=dl.reduce((s,x)=>s+ +x.reach,0);
+  const er=ps.length?ps.reduce((s,x)=>s+(x.likes+x.comments+x.saves+x.shares)/(x.reach||1),0)/ps.length*100:0;
+  return `<tr><td><a href="#" onclick="switchAcc('${a.id}');return false">${esc(a.name)}</a></td><td>${fmt(f)}</td><td>${g>=0?'+':''}${fmt(g)}</td><td>${fmt(r)}</td><td>${ps.length}</td><td>${er.toFixed(2)}%</td></tr>`}).join('');
+ pfNote.style.display='block';pfNote.innerHTML=`<h3>All Instagram accounts — last ${days()} days</h3><div class="tw"><table><tr><th>Account</th><th>Followers</th><th>Growth</th><th>Reach</th><th>Posts</th><th>Eng. rate</th></tr>${rows}</table></div>`}
+side.onclick=e=>{const x=e.target.closest('[data-del]');if(x){e.stopPropagation();return delIg(x.dataset.del)}
+ const b=e.target.closest('button');if(!b)return;if(b.dataset.login){location.href='/api/auth/login';return}if(b.dataset.add)return addIg();if(b.dataset.a)return switchAcc(b.dataset.a);
+ curPf=b.dataset.p;drawSide();if(curPf==='Summary'){compare();show('vAnalytics');return}
+ if(curPf==='Instagram')return switchAcc(curAcc);
+ pfNote.style.display='block';pfNote.textContent=`No ${curPf} data yet — export your ${curPf} stats as CSV and use ⬆ Import. Showing Instagram meanwhile.`;show('vAnalytics')};
+function show(v){document.querySelectorAll('.view').forEach(x=>x.hidden=x.id!==v);document.querySelectorAll('.topnav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='vAnalytics')setTimeout(render,0)}
+document.querySelector('.topnav').onclick=e=>{const b=e.target.closest('button');if(b)show(b.dataset.v)};
+let subNow='sCommunity';subtabs.onclick=e=>{const b=e.target.closest('button');if(!b)return;subNow=b.dataset.s;subtabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
+ const id=subNow==='sReels'?'sPosts':subNow;document.querySelectorAll('.sub').forEach(x=>x.hidden=x.id!==id);plTitle.textContent=subNow==='sReels'?'List of reels':'List of posts';render()};
+// ---- Posts list with delete ----
+function norm(){posts.forEach((x,i)=>{x.id??='p'+i+'_'+x.date;x.views??=Math.round(x.reach*1.6);x.time??=(8+i*7%14)+':'+String(i*13%60).padStart(2,'0')})}norm();
+const savePosts=()=>LS.set('ip_data_'+curAcc,{daily,posts});const TI={Reel:'🎬',Carousel:'🗂',Image:'🖼',Story:'⭕'},TC={Reel:'#d6336c',Carousel:'#7048e8',Image:'#1c7ed6',Story:'#f08c00'};
+function listRows(){const q=(pq.value||'').toLowerCase(),from=win()[0]?.date||'';return posts.filter(x=>x.date>=from&&(subNow!=='sReels'||x.type==='Reel')&&String(x.caption).toLowerCase().includes(q)).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time))}
+function drawList(){if(typeof pq==='undefined')return;const r=listRows();
+ plist.innerHTML=`<tr><th><input type="checkbox" id="selAll" onchange="plist.querySelectorAll('.sel').forEach(c=>c.checked=this.checked);selChg()"></th><th style="text-align:left">Post</th><th></th><th>Type</th><th style="text-align:left">Date</th><th>Reach</th><th>Views</th><th>Interactions</th><th>Likes</th><th>Saved</th><th>Shares</th><th>Comments</th></tr>`+
+ r.map(x=>{const it=x.likes+x.comments+x.saves+x.shares;return `<tr><td><input type="checkbox" class="sel" value="${x.id}" onchange="selChg()"></td>
+ <td class="cap"><span class="thumb" style="background:${TC[x.type]||'#868e96'}">${TI[x.type]||'📷'}</span> ${esc(x.caption)||'<i>Without text</i>'}</td>
+ <td><span class="star ${x.fav?'on':''}" onclick="fav('${x.id}')">★</span> <span class="menu"><button onclick="this.parentNode.classList.toggle('open')">⋮</button><span class="dd"><button onclick="copyCap('${x.id}')">📋 Copy caption</button><button onclick="delPosts(['${x.id}'])">🗑 Delete</button></span></span></td>
+ <td>${TI[x.type]||''}</td><td style="text-align:left">${new Date(x.date).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})}<br><span class="small">${x.time}</span></td>
+ <td>${fmt(x.reach)}</td><td>${fmt(x.views)}</td><td>${fmt(it)}</td><td>${fmt(x.likes)}</td><td>${fmt(x.saves)}</td><td>${fmt(x.shares)}</td><td>${fmt(x.comments)}</td></tr>`}).join('')+(r.length?'':'<tr><td colspan="12" class="small" style="text-align:center">No posts in this period</td></tr>');selChg()}
+function selChg(){const n=plist.querySelectorAll('.sel:checked').length;delSel.disabled=!n;delSel.textContent=n?`🗑 Delete selected (${n})`:'🗑 Delete selected'}
+function delPosts(ids){if(!confirm(`Delete ${ids.length} post(s) from InstaPulse? This can't be undone.`))return;posts=posts.filter(x=>!ids.includes(x.id));savePosts();render()}
+function delSelected(){delPosts([...plist.querySelectorAll('.sel:checked')].map(c=>c.value))}
+function fav(id){const x=posts.find(p=>p.id===id);x.fav=!x.fav;savePosts();drawList()}
+function copyCap(id){navigator.clipboard?.writeText(posts.find(p=>p.id===id).caption).catch(()=>{})}
+function exportPosts(){const k=['date','time','type','caption','reach','views','likes','comments','saves','shares'];const b=new Blob([[k.join(','),...listRows().map(r=>k.map(x=>'"'+String(r[x]??'').replace(/"/g,'""')+'"').join(','))].join('\n')],{type:'text/csv'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='posts.csv';a.click()}
+{const d=LS.get('ip_data_'+curAcc,null)||(LS.get('ip_posts',null)&&{daily,posts:LS.get('ip_posts')});if(d){daily=d.daily;posts=d.posts;norm()}else savePosts()}drawSide();
+const _r2=render;render=function(){norm();_r2();drawList()};range.onchange=()=>render();
+render();
+// ---- Instagram Login ----
+async function syncIg(id){const A=accs.find(x=>x.id===id);pfNote.style.display='block';pfNote.textContent='⏳ Loading '+A.name+' from Instagram…';
+ try{const r=await fetch('/api/ig',{headers:{Authorization:'Bearer '+A.token}});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);
+  if(j.profile?.username)A.name='@'+j.profile.username;saveP();
+  LS.set('ip_data_'+id,{daily:j.daily,posts:j.posts,at:Date.now()});curAcc=id;daily=j.daily;posts=j.posts;norm();switchAcc(id)}
+ catch(e){pfNote.textContent='⚠ Instagram: '+e.message+(/token|session|OAuth/i.test(e.message)?' — log in again.':'')}}
+(function(){const q=new URLSearchParams(location.hash.slice(1));if(q.get('ig_error'))alert('Instagram login failed: '+q.get('ig_error'));
+ const t=q.get('ig_token');if(!t){return}window.history.replaceState(null,'',location.pathname);
+ const id='ig'+q.get('ig_user');accs=accs.filter(a=>a.id!==id);accs.push({id,pf:'Instagram',name:'@'+(q.get('ig_name')||'instagram'),token:t});saveP();syncIg(id)})();
 </script>
 </body>
 </html>
