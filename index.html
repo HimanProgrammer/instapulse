@@ -291,7 +291,7 @@ function switchAcc(id){curAcc=id;LS.set('ip_cur',id);const d=LS.get('ip_data_'+i
  if(A?.token&&(!d||Date.now()-(d.at||0)>36e5))return syncIg(id);
  if(d){daily=d.daily;posts=d.posts}else{const g=demo();daily=g.d;posts=g.p;norm();savePosts()}
  curPf='Instagram';pfNote.style.display=id==='demo'||!d||A?.token?'block':'none';
- if(A?.token){pfNote.innerHTML=`🟢 Live from Instagram · ${esc(A.name)} · updated ${new Date(d.at).toLocaleTimeString()} <button onclick="syncIg('${id}')">⟳ Refresh</button>`}else pfNote.textContent=id==='demo'?'Demo data. Click ＋ Add Instagram account to add your accounts.':`Sample data for ${accs.find(x=>x.id===id)?.name}. Use ⬆ Import to load this account's real CSV export.`;
+ if(A?.token){pfNote.innerHTML=`🟢 Live from Instagram · ${esc(A.name)} · updated ${new Date(d.at).toLocaleTimeString()} <button onclick="syncIg('${id}')">⟳ Refresh</button> <button onclick="navigator.clipboard.writeText('${A.name.slice(1)}='+accs.find(x=>x.id==='${id}').token);this.textContent='✔ Copied'">🔑 Copy MCP token</button>`}else pfNote.textContent=id==='demo'?'Demo data. Click ＋ Add Instagram account to add your accounts.':`Sample data for ${accs.find(x=>x.id===id)?.name}. Use ⬆ Import to load this account's real CSV export.`;
  drawSide();show('vAnalytics')}
 function compare(){const rows=(igAccs().length?igAccs():[{id:'demo',name:'Demo account'}]).map(a=>{const d=LS.get('ip_data_'+a.id,null);if(!d)return `<tr><td>${esc(a.name)}</td><td colspan="4" class="small">no data yet — open it once</td></tr>`;
   const dl=d.daily.slice(-days()),ps=d.posts.filter(x=>x.date>=(dl[0]?.date||''));const f=+dl.at(-1)?.followers||0,g=f-(+dl[0]?.followers||0),r=dl.reduce((s,x)=>s+ +x.reach,0);
