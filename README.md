@@ -38,3 +38,19 @@ One-time setup:
    Then redeploy.
 
 Tokens last 60 days and are kept in your browser only. Instagram's API cannot delete posts, so Delete only removes them from InstaPulse.
+
+## MCP server (use InstaPulse from Claude)
+`/api/mcp` is an MCP server so Claude can read your Instagram analytics directly.
+
+Tools: `list_accounts`, `get_account_overview`, `get_daily_insights`, `list_posts`, `get_post_insights`, `compare_accounts`.
+
+Setup:
+1. Log in to each account in InstaPulse, open it, and click **🔑 Copy MCP token** (copies `name=TOKEN`).
+2. In Vercel → instapulse → Settings → Environment Variables add:
+   - `IG_TOKENS` = the copied values joined with commas, e.g. `brand_main=IGAA...,brand_shop=IGAA...`
+   - `MCP_KEY` = a long random password you make up
+   Then redeploy.
+3. In Claude → **Settings → Connectors → Add custom connector**, URL:
+   `https://instapulse-lime.vercel.app/api/mcp?key=YOUR_MCP_KEY`
+
+Keep the URL private: anyone with it can read your analytics. Tokens expire after 60 days; copy fresh ones then.
