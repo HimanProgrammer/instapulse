@@ -54,3 +54,10 @@ Setup:
    `https://instapulse-lime.vercel.app/api/mcp?key=YOUR_MCP_KEY`
 
 Keep the URL private: anyone with it can read your analytics. Tokens expire after 60 days; copy fresh ones then.
+
+## Posting & scheduling to Instagram (Graph API)
+Instagram accounts logged in through **Login with Instagram** can publish directly from the Planner:
+- Types: Reel, **Trial Reel** (shown to non-followers first), Post (image or video), Story.
+- **Post now** publishes immediately; scheduled posts auto-publish at their time **while InstaPulse is open in a browser tab** (or the next time you open it). Other platforms still get a reminder + copied caption.
+- Instagram needs the media at a **public URL**: paste one, or connect a **Vercel Blob** store (Vercel → Storage → Create → Blob → connect to instapulse) so file uploads work.
+- Meta app: the login now also asks for `instagram_business_content_publish`. Log in again after updating so tokens carry it. Limits: 100 API-published posts per account per 24 h; Reels 3–90 s, MP4/MOV.
