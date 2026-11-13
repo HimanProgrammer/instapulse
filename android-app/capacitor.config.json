@@ -1,0 +1,11 @@
+{
+  "appId": "in.instapulse.app",
+  "appName": "InstaPulse",
+  "webDir": "www",
+  "server": {
+    "url": "https://instapulse-lime.vercel.app",
+    "cleartext": false,
+    "allowNavigation": ["instapulse-lime.vercel.app", "*.instagram.com", "*.facebook.com", "accounts.google.com", "*.linkedin.com", "*.tiktok.com"]
+  },
+  "android": { "backgroundColor": "#0B0A12" }
+}
