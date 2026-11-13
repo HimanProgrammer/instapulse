@@ -18,7 +18,7 @@ jobs:
         with: { distribution: temurin, java-version: 17 }
       - run: npm install
       - run: npx cap add android
-      - run: npx capacitor-assets generate --android --iconBackgroundColor '#7B5CFF' --splashBackgroundColor '#0B0A12'
+      - run: npx capacitor-assets generate --android --splashBackgroundColor '#0B0A12'
       - run: npx cap sync android
       - run: cd android && ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
