@@ -98,3 +98,7 @@ These platforms auto-post while InstaPulse is open in a tab (Instagram also post
 - Data Deletion instructions: `/legal/data-deletion.html`
 
 Set your business name, city/state and contact e-mail in `legal/site.js` (as on your Udyam certificate). Paste the three URLs into the Meta app → App settings → Basic.
+
+## Android app
+- **Install from the browser (instant):** open the site in Chrome on Android → **📲 Install app** (or menu → Install app). InstaPulse is a PWA (manifest + service worker).
+- **APK:** `android-app/` is a Capacitor 6 shell around the live site; GitHub Actions workflow **Android APK** builds a debug APK artifact. See `android-app/README.md` for building a signed AAB for the Play Store.

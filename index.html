@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>InstaPulse Analytics</title>
+<title>InstaPulse</title>
+<meta name="theme-color" content="#7B5CFF">
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{--bg:#f5f6fa;--card:#fff;--ink:#1d2333;--mut:#6b7280;--line:#e5e7eb;--acc:#d6336c;--acc2:#7048e8;--ok:#2f9e44;--bad:#e03131}
@@ -58,19 +62,83 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
 #cal .ev.ok{background:#2f9e44}#cal .ev.bad{background:#e03131}#cal .h{font-size:11px;text-align:center;color:var(--mut)}
 .cm{border-bottom:1px solid var(--line);padding:8px 0}.cm .r{margin-left:18px;color:var(--mut)}
 #printHead{display:none}
+/* ================= InstaPulse design system v2 ================= */
+:root{--bg:#F6F5FB;--card:#FFFFFF;--ink:#14121F;--mut:#6E6A85;--line:#ECEAF3;--soft:#F1EFF8;--acc:#FF3D7F;--acc2:#7B5CFF;--acc3:#FFB443;--ok:#12B76A;--bad:#F04438;
+ --grad:linear-gradient(135deg,#FFB443 0%,#FF3D7F 45%,#7B5CFF 100%);--shadow:0 1px 2px rgba(20,18,31,.04),0 8px 28px rgba(20,18,31,.06);--r:18px}
+@media (prefers-color-scheme:dark){:root{--bg:#0B0A12;--card:#15131F;--ink:#F2F0FA;--mut:#9C98B3;--line:#25223A;--soft:#1D1A2B;--shadow:0 1px 2px rgba(0,0,0,.3),0 10px 30px rgba(0,0,0,.35)}}
+body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;font-size:14px}
+h1,h2,h3,.logo,.kpi .v,.score,.big{font-family:"Plus Jakarta Sans",Inter,sans-serif}
+a{color:var(--acc2);text-decoration:none}a:hover{text-decoration:underline}
+select,input,button,textarea{border-radius:12px;border:1px solid var(--line);background:var(--card);padding:9px 12px;transition:border-color .15s,box-shadow .15s,background .15s,transform .05s}
+input,select,textarea{min-height:40px}input:focus,select:focus,textarea:focus{outline:0;border-color:var(--acc2);box-shadow:0 0 0 4px rgba(123,92,255,.15)}
+button{font-weight:600}button:hover{background:var(--soft)}button:active{transform:translateY(1px)}
+button.pri,.danger{background:var(--grad);color:#fff;border:0;box-shadow:0 6px 16px rgba(255,61,127,.25)}button.pri:hover{filter:brightness(1.05);background:var(--grad)}
+.danger{background:linear-gradient(135deg,#F04438,#D92D20);box-shadow:none}
+/* top bar */
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--card) 82%,transparent);backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);color:var(--ink);border-bottom:1px solid var(--line);padding:10px 24px;box-shadow:none}
+.logo{display:flex;align-items:center;gap:10px;font-size:19px;margin-right:auto;font-weight:700;letter-spacing:-.02em}.logo b{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.topnav{background:var(--soft);padding:4px;border-radius:14px;gap:2px}
+.topnav button{color:var(--mut);border-radius:10px;padding:8px 14px;font-size:13.5px}.topnav button:hover{background:var(--card);color:var(--ink)}
+.topnav button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(20,18,31,.1)}
+header.top select,header.top button{background:var(--card);color:var(--ink);border-color:var(--line);font-size:13px}
+/* layout */
+.shell{grid-template-columns:240px 1fr}
+.side{background:transparent;border-right:1px solid var(--line);padding:18px 14px;min-height:calc(100vh - 62px)}
+.side button{border-radius:12px;padding:10px 12px;color:var(--mut);font-weight:500;font-size:14px}.side button:hover{background:var(--card);color:var(--ink)}
+.side button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--shadow);position:relative}
+.side button.on::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--grad)}
+.side .sub-acc{padding:7px 12px 7px 34px;font-size:13px}.side .sub-acc.add{color:var(--acc);font-weight:600}
+main{padding:24px 28px;gap:20px;grid-template-columns:1fr 360px}
+.card{border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow)}
+@media (prefers-color-scheme:light){.card{border-color:transparent}}
+.card h3{font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:14px}
+/* sub tabs */
+.subtabs{gap:6px;border:0;margin-bottom:20px}.subtabs button{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:12.5px;letter-spacing:.04em;color:var(--mut)}
+.subtabs button.on{border-color:transparent;background:var(--ink);color:var(--card);font-weight:700}
+.tabs button{border-radius:999px;font-size:13px;padding:7px 14px}.tabs button.on{background:var(--ink);color:var(--card)}
+/* KPI tiles */
+.kpis{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px}
+.kpi{position:relative;overflow:hidden}.kpi::after{content:"";position:absolute;right:-30px;top:-30px;width:90px;height:90px;border-radius:50%;background:var(--grad);opacity:.08}
+.kpi .l{font-size:11.5px;font-weight:600;letter-spacing:.06em}.kpi .v{font-size:30px;font-weight:800;letter-spacing:-.03em;margin:6px 0 4px}
+.d{display:inline-block;font-weight:600;font-size:12px;padding:2px 8px;border-radius:999px}.d.up{background:rgba(18,183,106,.12);color:var(--ok)}.d.dn{background:rgba(240,68,56,.12);color:var(--bad)}
+/* tables */
+table{font-size:13.5px}th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;font-weight:600;border-bottom:1px solid var(--line);padding:10px}
+td{padding:12px 10px;border-bottom:1px solid var(--line)}tbody tr:hover td,tr:hover td{background:color-mix(in srgb,var(--soft) 60%,transparent)}
+.thumb{width:42px;height:42px;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+/* chat */
+aside.card{top:86px;height:calc(100vh - 110px)}.m{border-radius:16px}.m.u{background:var(--grad)}.m.a{background:var(--soft);border:0}
+.chips button{border-radius:999px;font-size:12px;padding:6px 12px;background:var(--soft);border:0}
+/* misc */
+.badge{background:var(--grad);border-radius:999px;font-size:10.5px;padding:3px 8px;font-weight:700;letter-spacing:.03em;vertical-align:middle}
+.st{border-radius:999px;padding:3px 9px;font-weight:600}.st.s{background:var(--acc2)}.st.p{background:var(--ok)}.st.f{background:var(--bad)}.st.d{background:var(--acc3)}
+.acc label{border-radius:999px;padding:7px 12px;background:var(--card);cursor:pointer}.acc label:has(input:checked){border-color:var(--acc2);background:rgba(123,92,255,.08)}
+#cal .d{border-radius:12px;min-height:88px;background:var(--card)}#cal .d.today{border:2px solid var(--acc)}#cal .ev{background:var(--acc2);border-radius:6px;padding:2px 6px}#cal .ev.ok{background:var(--ok)}#cal .ev.bad{background:var(--bad)}
+#dueBar{background:var(--grad);font-weight:600}
+.score{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent!important;font-size:40px}
+footer a{color:var(--mut)}
+/* mobile / Android app */
+@media(max-width:800px){
+ header.top{padding:10px 14px;gap:10px}.topnav{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap}.topnav button{white-space:nowrap}
+ .ctrls{gap:6px}.ctrls button,.ctrls select{padding:7px 10px;font-size:12px}
+ .shell{grid-template-columns:1fr}.kpis{grid-template-columns:1fr 1fr;gap:10px}.kpi .l{font-size:10.5px}.d{font-size:11px;padding:2px 6px}
+ .side{display:flex;flex-wrap:nowrap;overflow-x:auto;min-height:0;border-right:0;border-bottom:1px solid var(--line);padding:10px 14px;gap:6px}.side button{width:auto;padding:8px 12px;font-size:13px}.side button.on::before{display:none}
+ main{padding:16px;grid-template-columns:1fr}.card{padding:16px}.kpi .v{font-size:24px}aside.card{position:static;height:520px}
+}
+
 @media print{header.top,.side,aside,.subtabs,.tabs,#dueBar,.view:not(#vAnalytics){display:none!important}.shell,main{display:block}
  .sub{display:block!important}#printHead{display:block;margin-bottom:12px}.card{break-inside:avoid}body{background:#fff}}
 </style>
 </head>
 <body>
 <header class="top">
-  <div class="logo">◉◉ Insta<span>Pulse</span></div>
+  <div class="logo"><svg width="30" height="30" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FFB443"/><stop offset=".5" stop-color="#FF3D7F"/><stop offset="1" stop-color="#7B5CFF"/></linearGradient></defs><rect width="64" height="64" rx="18" fill="url(#lg)"/><path d="M12 36h9l5-12 8 22 6-14h12" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lt">Insta<b>Pulse</b></span></div>
   <nav class="topnav">
     <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vInbox">💬 Inbox</button><button data-v="vResearch">🔎 Research</button><button data-v="vLab">🧪 Creator Lab</button>
   </nav>
   <div class="ctrls">
     <select id="range"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option></select>
     <input type="file" id="csv" accept=".csv,.json" hidden><button onclick="csv.click()">⬆ Import</button>
+    <button id="installBtn" class="pri" hidden onclick="installApp()">📲 Install app</button>
     <button onclick="pdfReport()">📄 PDF report</button>
     <button onclick="settings()">⚙ Claude key</button>
   </div>
@@ -213,14 +281,14 @@ function render(){const {o,c,ps}=stats();
   `<div class="card kpi"><div class="l">Posts</div><div class="v">${o.posts}</div><div class="d">${o.followersGained.now>=0?'+':''}${o.followersGained.now} followers</div></div>
    <div class="card kpi"><div class="l">Avg eng. rate</div><div class="v">${o.er.toFixed(2)}%</div><div class="d">per post reach</div></div>`;
  tabs.innerHTML=Object.entries(METRICS).map(([k,l])=>`<button class="${k===metric?'on':''}" onclick="metric='${k}';render()">${l}</button>`).join('');
- draw('main','line',c.map(x=>x.date.slice(5)),[{label:METRICS[metric],data:c.map(x=>x[metric]),borderColor:'#d6336c',backgroundColor:'rgba(214,51,108,.12)',fill:true,tension:.3,pointRadius:0}]);
+ draw('main','line',c.map(x=>x.date.slice(5)),[{label:METRICS[metric],data:c.map(x=>x[metric]),borderColor:'#FF3D7F',borderWidth:2.5,backgroundColor:(c)=>{const g=c.chart.ctx.createLinearGradient(0,0,0,c.chart.height||300);g.addColorStop(0,'rgba(255,61,127,.28)');g.addColorStop(1,'rgba(123,92,255,0)');return g},fill:true,tension:.3,pointRadius:0}]);
  const T={};ps.forEach(x=>{(T[x.type]??=[]).push(x.likes+x.comments+x.saves+x.shares)});
- draw('types','bar',Object.keys(T),[{label:'Avg interactions',data:Object.values(T).map(a=>Math.round(a.reduce((s,x)=>s+x,0)/a.length)),backgroundColor:'#7048e8'}]);
+ draw('types','bar',Object.keys(T),[{label:'Avg interactions',data:Object.values(T).map(a=>Math.round(a.reduce((s,x)=>s+x,0)/a.length)),backgroundColor:'#7B5CFF',borderRadius:8,maxBarThickness:42}]);
  const W=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],D=W.map(()=>[]);c.forEach(x=>D[new Date(x.date).getDay()].push(x.engagement));
- draw('days','bar',W,[{label:'Avg engagement',data:D.map(a=>a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length):0),backgroundColor:'#f08c00'}]);
+ draw('days','bar',W,[{label:'Avg engagement',data:D.map(a=>a.length?Math.round(a.reduce((s,x)=>s+x,0)/a.length):0),backgroundColor:'#FFB443',borderRadius:8,maxBarThickness:42}]);
 }
 let sortKey='reach',sortDir=-1,posts_sorted=[];function sortBy(k){sortDir=k===sortKey?-sortDir:-1;sortKey=k;render()}
-function draw(id,type,labels,datasets){charts[id]?.destroy();charts[id]=new Chart(document.getElementById(id),{type,data:{labels,datasets},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}}},maintainAspectRatio:false,responsive:true}});document.getElementById(id).parentElement.style.height=id==='main'?'320px':'280px'}
+function draw(id,type,labels,datasets){Chart.defaults.font.family='Inter,system-ui,sans-serif';Chart.defaults.color=getComputedStyle(document.body).getPropertyValue('--mut').trim()||'#6E6A85';Chart.defaults.borderColor=getComputedStyle(document.body).getPropertyValue('--line').trim()||'#ECEAF3';charts[id]?.destroy();charts[id]=new Chart(document.getElementById(id),{type,data:{labels,datasets},options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}}},maintainAspectRatio:false,responsive:true}});document.getElementById(id).parentElement.style.height=id==='main'?'320px':'280px'}
 range.onchange=render;
 // ---- import / export ----
 function parseCsv(t){const [h,...r]=t.trim().split(/\r?\n/).map(l=>l.split(','));return r.map(c=>Object.fromEntries(h.map((k,i)=>[k.trim(),isNaN(c[i])?c[i]:+c[i]])))}
@@ -481,5 +549,8 @@ async function compSearch(){cpOut.textContent='⏳ Analyzing…';try{const {toke
   <button style="margin-top:8px" onclick="ask('Compare my account with competitor @${esc(d.username)}: ${fmt(d.followers_count)} followers, ${er.toFixed(2)}% engagement, ${reels} reels in last ${ms.length} posts. What should I copy and what should I do differently?')">🤖 Ask Claude how to beat them</button>`}
  catch(e){cpOut.textContent='⚠ '+e.message}}
 </script>
+<script>let deferredInstall;addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;installBtn.hidden=false});
+function installApp(){deferredInstall?.prompt();deferredInstall=null;installBtn.hidden=true}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{})</script>
 </body>
 </html>
