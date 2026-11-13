@@ -25,6 +25,20 @@ export default async function handler(req, res) {
       }));
       return res.json({ items: out });
     }
+    if (b.action === 'dms') {
+      const me = await call('/me?fields=user_id', token);
+      const conv = (await call(`/${me.user_id}/conversations?platform=instagram&fields=id,updated_time,participants&limit=20`, token)).data || [];
+      const out = await Promise.all(conv.map(async (c) => {
+        const m = (await call(`/${c.id}?fields=messages.limit(15){id,message,from,created_time}`, token)).messages?.data || [];
+        const other = (c.participants?.data || []).find((x) => x.id !== me.user_id) || {};
+        return { id: c.id, with: other, updated: c.updated_time, messages: m.reverse() };
+      }));
+      return res.json({ me: me.user_id, conversations: out });
+    }
+    if (b.action === 'dm') {
+      const me = await call('/me?fields=user_id', token);
+      return res.json(await call(`/${me.user_id}/messages`, token, { recipient: { id: b.to }, message: { text: String(b.text || '').slice(0, 1000) } }));
+    }
     if (b.action === 'reply') return res.json(await call(`/${b.id}/replies`, token, { message: String(b.message || '').slice(0, 2200) }));
     if (b.action === 'hide') return res.json(await call(`/${b.id}`, token, { hide: !!b.hide }));
     res.status(400).json({ error: 'Unknown action' });

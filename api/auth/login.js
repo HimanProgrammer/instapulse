@@ -22,7 +22,7 @@ export default function handler(req, res) {
   url.searchParams.set('client_id', IG_APP_ID);
   url.searchParams.set('redirect_uri', IG_REDIRECT_URI);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'instagram_business_basic,instagram_business_manage_insights,instagram_business_content_publish,instagram_business_manage_comments');
+  url.searchParams.set('scope', 'instagram_business_basic,instagram_business_manage_insights,instagram_business_content_publish,instagram_business_manage_comments,instagram_business_manage_messages');
   url.searchParams.set('force_reauth', 'true'); // lets you log into a different account each time
   res.writeHead(302, { Location: url.toString() }).end();
 }

@@ -67,3 +67,13 @@ Instagram accounts logged in through **Login with Instagram** can publish direct
 - **📆 Content calendar** (Planning tab): month view of every scheduled/posted item.
 - **#️⃣ Hashtag tracker** (Analytics → Account): average reach, interactions and engagement rate per hashtag used in your captions.
 - **📄 PDF report**: prints the dashboard for the current account and period; choose "Save as PDF".
+
+## Server scheduling (posts go out even when your browser is closed)
+Scheduling for logged-in Instagram accounts is handled by a Supabase project (`instapulse`, region ap-south-1):
+- Edge Function `ip-api` (`supabase/functions/ip-api/index.ts`): `schedule`, `list`, `cancel` (authenticated by the caller's Instagram token) and `cron`.
+- Table `scheduled_posts` (RLS on, no public policies: tokens are only readable by the function).
+- `pg_cron` job `instapulse-publish` calls the function every minute; it creates the media container, waits for processing and publishes.
+Queue items scheduled this way show ☁. If the server can't be reached, the browser falls back to publishing while the page is open.
+
+## Direct messages
+Inbox → ✉️ Direct messages lists recent Instagram conversations; send replies or ✨ draft one with Claude. Requires `instagram_business_manage_messages` (requested at login). Instagram only allows replies within 24 h of the customer's last message. For other people's accounts (selling InstaPulse), Meta App Review for messaging is required.

@@ -135,6 +135,8 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
  </div>
  <div class="card" id="calCard" style="margin-top:16px"></div>
  <div class="view" id="vInbox" hidden>
+  <div class="card" style="margin-bottom:16px"><h3>✉️ Direct messages <button style="float:right" onclick="loadDms()">⟳ Refresh</button></h3>
+   <div id="dms" class="small">Open a logged-in Instagram account, then press Refresh. Instagram only lets you reply within 24 h of the person's last message.</div></div>
   <div class="card"><h3>💬 Inbox — comments on your posts <button style="float:right" onclick="loadInbox()">⟳ Refresh</button></h3>
    <div id="inbox" class="small">Open a logged-in Instagram account, then press Refresh.</div></div>
  </div>
@@ -275,7 +277,7 @@ function drawP(){accList.innerHTML=accs.length?accs.map(a=>`${a.pf} · ${esc(a.n
  const now=Date.now();queue.sort((a,b)=>a.at-b.at);
  document.getElementById('queue').innerHTML='<tr><th>When</th><th>Account</th><th>Type</th><th>Caption</th><th>Status</th><th></th></tr>'+queue.map((q,i)=>{const st=q.done?'p':q.at<=now?'d':'s';
   return `<tr><td>${new Date(q.at).toLocaleString([], {dateStyle:'short',timeStyle:'short'})}</td><td>${esc(q.acc)}</td><td>${q.type}</td><td>${esc(q.cap.slice(0,40))}…</td>
-  <td><span class="st ${q.state==='failed'?'f':st}" title="${esc(q.err||'')}">${q.state==='publishing'?'Publishing…':q.state==='failed'?'Failed':st==='p'?(q.link?`<a style="color:#fff" href="${q.link}" target="_blank">Posted ↗</a>`:'Posted'):st==='d'?'Due':'Scheduled'}</span>${q.err?`<div class="small">${esc(q.err)}</div>`:''}</td><td><button onclick="postNow(${i})">${accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl?'Post now':'Copy'}</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
+  <td><span class="st ${q.state==='failed'?'f':st}" title="${esc(q.err||'')}">${q.state==='publishing'?'Publishing…':q.state==='failed'?'Failed':st==='p'?(q.link?`<a style="color:#fff" href="${q.link}" target="_blank">Posted ↗</a>`:'Posted'):st==='d'?'Due':'Scheduled'}</span>${q.server?' <span class="small" title="Scheduled on the InstaPulse server — posts even if this browser is closed">☁</span>':''}${q.err?`<div class="small">${esc(q.err)}</div>`:''}</td><td><button onclick="postNow(${i})">${accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl?'Post now':'Copy'}</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
 async function uploadMedia(f){const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
  if(r.status===501)throw new Error('Media upload is not set up (connect a Vercel Blob store) — paste a public media URL instead.');
  const {upload}=await import('https://cdn.jsdelivr.net/npm/@vercel/blob@0.27.3/client/+esm');
@@ -299,7 +301,7 @@ function postNow(i){const q=queue[i];const A=accs.find(x=>x.id===q.accId);
  if(A?.token&&q.mediaUrl){publishIg(q);return}
  navigator.clipboard?.writeText(q.cap).catch(()=>{});q.done=true;saveP();
  alert(`Caption copied ✔\nNow open ${q.acc} and post your ${q.type}${q.media?' ('+q.media+')':''}.${q.type==='Trial Reel'?'\nTip: turn on "Trial" in Instagram\'s Reel share screen so it is shown to non-followers first.':''}`)}
-function checkDue(){const due=queue.filter(q=>!q.done&&q.at<=Date.now()&&q.state!=='failed');
+function checkDue(){const due=queue.filter(q=>!q.done&&!q.server&&q.at<=Date.now()&&q.state!=='failed');
  due.filter(q=>accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl&&q.state!=='publishing').forEach(publishIg);
  const manual=due.filter(q=>!(accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl));
  dueBar.style.display=manual.length?'block':'none';
@@ -405,6 +407,31 @@ async function aiReply(id,btn){const i=document.getElementById('rp_'+id),c=btn.c
  try{await claude([{role:'user',content:'Write one short, friendly Instagram reply (max 25 words, no hashtags) to this comment: '+c}],'You reply to Instagram comments for a creator. Warm, natural, same language as the comment.',i)}catch(e){alert(e.message)}}
 document.querySelector('.topnav').addEventListener('click',e=>{if(e.target.closest('[data-v=vInbox]')&&!inbox.dataset.loaded&&accs.find(x=>x.id===curAcc)?.token){inbox.dataset.loaded=1;loadInbox()}});
 render();
+// ---- DMs ----
+async function loadDms(){dms.textContent='⏳ Loading messages…';
+ try{const {me,conversations}=await igApi('/api/comments',{action:'dms'});
+  dms.innerHTML=conversations.length?conversations.map(c=>`<div class="card" style="margin:10px 0"><b>@${esc(c.with.username||c.with.id||'user')}</b> <span class="small">${new Date(c.updated).toLocaleString()}</span>`+
+   c.messages.map(m=>`<div class="cm" style="${m.from?.id===me?'text-align:right;color:var(--acc2)':''}">${esc(m.message||'[attachment]')} <span class="small">${new Date(m.created_time).toLocaleTimeString()}</span></div>`).join('')+
+   `<div class="row" style="margin-top:6px"><input id="dm_${c.id}" placeholder="Message…" style="flex:1"><button onclick="aiDm('${c.id}',this)" title="Draft with Claude">✨</button><button onclick="sendDm('${c.id}','${c.with.id}')">Send</button></div></div>`).join(''):'No conversations yet.'}
+ catch(e){dms.textContent='⚠ '+e.message}}
+async function sendDm(cid,to){const i=document.getElementById('dm_'+cid);if(!i.value.trim())return;try{await igApi('/api/comments',{action:'dm',to,text:i.value});loadDms()}catch(e){alert(e.message)}}
+async function aiDm(cid,btn){const i=document.getElementById('dm_'+cid),ctx=btn.closest('.card').innerText.slice(-600);
+ try{await claude([{role:'user',content:'Write one short, friendly reply (max 40 words) to the last message in this Instagram DM thread:\n'+ctx}],'You reply to Instagram DMs for a creator/business. Warm, helpful, same language as the customer.',i)}catch(e){alert(e.message)}}
+// ---- Server scheduling (Supabase): posts go out even when the browser is closed ----
+const SERVER='https://oyzlwesqyhsovnwwaxhi.supabase.co/functions/v1/ip-api';
+async function srv(token,b){const r=await fetch(SERVER,{method:'POST',headers:{'content-type':'application/json','x-ig-token':token},body:JSON.stringify(b)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
+async function serverSchedule(){const fresh=queue.filter(q=>!q.server&&!q.done&&!q.state&&q.mediaUrl&&accs.find(x=>x.id===q.accId)?.token);
+ for(const q of fresh){const A=accs.find(x=>x.id===q.accId);
+  try{const {jobs}=await srv(A.token,{action:'schedule',posts:[{type:q.type,mediaUrl:q.mediaUrl,caption:q.cap,runAt:new Date(q.at).toISOString()}]});q.server=true;q.jobId=jobs[0].id}
+  catch(e){q.serverErr=e.message}}
+ if(fresh.length)saveP()}
+async function serverSync(){const byAcc={};queue.filter(q=>q.server&&!q.done&&q.state!=='failed').forEach(q=>(byAcc[q.accId]??=[]).push(q));
+ for(const id in byAcc){const A=accs.find(x=>x.id===id);if(!A?.token)continue;
+  try{const {jobs}=await srv(A.token,{action:'list'});byAcc[id].forEach(q=>{const j=jobs.find(x=>x.id===q.jobId);if(!j)return;
+   if(j.status==='posted'){q.state='posted';q.done=true;q.link=j.permalink}else if(j.status==='failed'){q.state='failed';q.err=j.error}else if(j.status==='processing')q.state='publishing';else if(j.status==='cancelled'){q.state='failed';q.err='Cancelled'}})}catch{}}
+ saveP()}
+const _sched=schedule;schedule=async function(){await _sched();await serverSchedule();drawP()};
+setInterval(serverSync,60000);serverSync();serverSchedule();
 </script>
 </body>
 </html>
