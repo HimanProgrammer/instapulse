@@ -77,3 +77,17 @@ Queue items scheduled this way show ☁. If the server can't be reached, the bro
 
 ## Direct messages
 Inbox → ✉️ Direct messages lists recent Instagram conversations; send replies or ✨ draft one with Claude. Requires `instagram_business_manage_messages` (requested at login). Instagram only allows replies within 24 h of the customer's last message. For other people's accounts (selling InstaPulse), Meta App Review for messaging is required.
+
+## Facebook, YouTube, LinkedIn, TikTok + hashtag research & competitor analysis
+Planning → **🔗 Connect platforms**. Each needs a free developer app; register the redirect URI
+`https://instapulse-lime.vercel.app/api/oauth?p=<facebook|google|linkedin|tiktok>` and add its keys in Vercel:
+
+| Platform | Vercel env vars | Where | Notes |
+|---|---|---|---|
+| Facebook Pages + IG research | `FB_APP_ID`, `FB_APP_SECRET` | developers.facebook.com (same Meta app, add **Facebook Login for Business**) | Posts to Pages; unlocks 🔎 Research. Instagram must be Business/Creator and linked to a Page. Hashtag search needs the *Instagram Public Content Access* feature. |
+| YouTube | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | console.cloud.google.com → enable YouTube Data API v3 → OAuth client (Web) | Uploads from the media URL. Unverified apps upload as private until Google audits the app. |
+| LinkedIn | `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` | linkedin.com/developers → products “Sign In with LinkedIn (OpenID)” + “Share on LinkedIn” | Text post, with the media URL attached as a link. |
+| TikTok | `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` | developers.tiktok.com → Content Posting API | Until TikTok audits the app, posts are private (SELF_ONLY). |
+
+These platforms auto-post while InstaPulse is open in a tab (Instagram also posts from the server when the browser is closed).
+🔎 **Research**: hashtag top/recent posts (30 hashtags per 7 days) and competitor stats via Business Discovery, with “Ask Claude how to beat them”.

@@ -66,7 +66,7 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
 <header class="top">
   <div class="logo">◉◉ Insta<span>Pulse</span></div>
   <nav class="topnav">
-    <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vInbox">💬 Inbox</button><button data-v="vLab">🧪 Creator Lab</button>
+    <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vInbox">💬 Inbox</button><button data-v="vResearch">🔎 Research</button><button data-v="vLab">🧪 Creator Lab</button>
   </nav>
   <div class="ctrls">
     <select id="range"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option></select>
@@ -133,12 +133,25 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
     <div class="small" style="margin-top:6px">When a post is due you get an alert with the caption copied — post it in one tap. Auto-publishing needs a connected backend (see README).</div>
    </div></div></div>
  </div>
+ <div class="card" style="margin-top:16px"><h3>🔗 Connect platforms for auto-posting</h3>
+  <div class="row" style="flex-wrap:wrap"><button onclick="location.href='/api/auth/login'">📸 Instagram</button><button onclick="location.href='/api/oauth?p=facebook'">📘 Facebook Pages</button>
+  <button onclick="location.href='/api/oauth?p=google'">▶️ YouTube</button><button onclick="location.href='/api/oauth?p=linkedin'">💼 LinkedIn</button><button onclick="location.href='/api/oauth?p=tiktok'">🎵 TikTok</button></div>
+  <div class="small" id="connNote" style="margin-top:6px">Connected accounts appear in “Choose accounts” and post automatically at the scheduled time.</div></div>
  <div class="card" id="calCard" style="margin-top:16px"></div>
  <div class="view" id="vInbox" hidden>
   <div class="card" style="margin-bottom:16px"><h3>✉️ Direct messages <button style="float:right" onclick="loadDms()">⟳ Refresh</button></h3>
    <div id="dms" class="small">Open a logged-in Instagram account, then press Refresh. Instagram only lets you reply within 24 h of the person's last message.</div></div>
   <div class="card"><h3>💬 Inbox — comments on your posts <button style="float:right" onclick="loadInbox()">⟳ Refresh</button></h3>
    <div id="inbox" class="small">Open a logged-in Instagram account, then press Refresh.</div></div>
+ </div>
+ <div class="view" id="vResearch" hidden>
+  <div class="card small" id="fbNote" style="margin-bottom:16px">Hashtag research and competitor analysis use Instagram's Facebook-Login APIs. <button onclick="location.href='/api/oauth?p=facebook'">📘 Connect Facebook</button> (your Instagram must be a Business/Creator account linked to a Facebook Page).</div>
+  <div class="grid2">
+   <div class="card"><h3>#️⃣ Hashtag research</h3><div class="row"><input id="hsQ" placeholder="#reelsindia" style="flex:1"><button class="pri" onclick="hashSearch()">Search</button></div>
+    <div class="small">Instagram allows 30 different hashtags per 7 days per account.</div><div id="hsOut" style="margin-top:10px"></div></div>
+   <div class="card"><h3>🕵️ Competitor analysis</h3><div class="row"><input id="cpQ" placeholder="@competitor" style="flex:1"><button class="pri" onclick="compSearch()">Analyze</button></div>
+    <div class="small">Works for public Business/Creator accounts.</div><div id="cpOut" style="margin-top:10px"></div></div>
+  </div>
  </div>
  <div class="view" id="vLab" hidden>
   <div class="lab">
@@ -273,11 +286,11 @@ function saveP(){LS.set('ip_accs',accs);LS.set('ip_queue',queue);drawP()}
 function addAcc(){const n=aName.value.trim();if(!n)return;accs.push({id:Date.now()+'',pf:aPf.value,name:n});aName.value='';saveP()}
 function delAcc(id){accs=accs.filter(a=>a.id!==id);saveP()}
 function drawP(){accList.innerHTML=accs.length?accs.map(a=>`${a.pf} · ${esc(a.name)} <a href="#" onclick="delAcc('${a.id}');return false">✕</a>`).join(' &nbsp;|&nbsp; '):'No accounts yet — add your 5 Instagram accounts, Facebook, TikTok…';
- pick.innerHTML=accs.map(a=>`<label><input type="checkbox" value="${a.id}" checked> ${a.pf==='Instagram'?'📸':'🌐'} ${esc(a.name)}</label>`).join('');
+ pick.innerHTML=accs.map(a=>`<label><input type="checkbox" value="${a.id}" checked> ${{Instagram:'📸',Facebook:'📘',YouTube:'▶️',LinkedIn:'💼',TikTok:'🎵'}[a.pf]||'🌐'}${a.token?'⚡':''} ${esc(a.name)}</label>`).join('');
  const now=Date.now();queue.sort((a,b)=>a.at-b.at);
  document.getElementById('queue').innerHTML='<tr><th>When</th><th>Account</th><th>Type</th><th>Caption</th><th>Status</th><th></th></tr>'+queue.map((q,i)=>{const st=q.done?'p':q.at<=now?'d':'s';
   return `<tr><td>${new Date(q.at).toLocaleString([], {dateStyle:'short',timeStyle:'short'})}</td><td>${esc(q.acc)}</td><td>${q.type}</td><td>${esc(q.cap.slice(0,40))}…</td>
-  <td><span class="st ${q.state==='failed'?'f':st}" title="${esc(q.err||'')}">${q.state==='publishing'?'Publishing…':q.state==='failed'?'Failed':st==='p'?(q.link?`<a style="color:#fff" href="${q.link}" target="_blank">Posted ↗</a>`:'Posted'):st==='d'?'Due':'Scheduled'}</span>${q.server?' <span class="small" title="Scheduled on the InstaPulse server — posts even if this browser is closed">☁</span>':''}${q.err?`<div class="small">${esc(q.err)}</div>`:''}</td><td><button onclick="postNow(${i})">${accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl?'Post now':'Copy'}</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
+  <td><span class="st ${q.state==='failed'?'f':st}" title="${esc(q.err||'')}">${q.state==='publishing'?'Publishing…':q.state==='failed'?'Failed':st==='p'?(q.link?`<a style="color:#fff" href="${q.link}" target="_blank">Posted ↗</a>`:'Posted'):st==='d'?'Due':'Scheduled'}</span>${q.server?' <span class="small" title="Scheduled on the InstaPulse server — posts even if this browser is closed">☁</span>':''}${q.err?`<div class="small">${esc(q.err)}</div>`:''}</td><td><button onclick="postNow(${i})">${canAuto(q)?'Post now':'Copy'}</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
 async function uploadMedia(f){const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
  if(r.status===501)throw new Error('Media upload is not set up (connect a Vercel Blob store) — paste a public media URL instead.');
  const {upload}=await import('https://cdn.jsdelivr.net/npm/@vercel/blob@0.27.3/client/+esm');
@@ -290,7 +303,8 @@ async function schedule(){const ids=[...pick.querySelectorAll('input:checked')].
  ids.forEach((id,k)=>{const a=accs.find(x=>x.id===id);queue.push({at:t+(stag?k*g:0),accId:id,acc:a.pf+' '+a.name,type:pType.value,cap:pCap.value,media:f?.name||'',mediaUrl:url,done:false})});
  saveP();const auto=ids.filter(id=>accs.find(x=>x.id===id)?.token).length;
  alert(`Scheduled ${ids.length} post(s).`+(auto?`\n${auto} will auto-publish to Instagram at the set time while InstaPulse is open (or next time you open it).`+(url?'':'\n⚠ No media URL — auto-publish needs one.'):''))}
-async function publishIg(q){const A=accs.find(x=>x.id===q.accId);if(!A?.token||!q.mediaUrl||q.state==='publishing')return false;
+const canAuto=q=>{const A=accs.find(x=>x.id===q.accId);return !!A?.token&&(A.pf==='Instagram'?!!q.mediaUrl:['Facebook','LinkedIn'].includes(A.pf)||!!q.mediaUrl)};
+async function publishIg(q){const A=accs.find(x=>x.id===q.accId);if(A&&A.pf!=='Instagram')return publishOther(q,A);if(!A?.token||!q.mediaUrl||q.state==='publishing')return false;
  q.state='publishing';q.err='';saveP();
  const api=async b=>{const r=await fetch('/api/publish',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+A.token},body:JSON.stringify(b)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j};
  try{const {container}=await api({action:'create',type:q.type,mediaUrl:q.mediaUrl,caption:q.cap});
@@ -298,12 +312,12 @@ async function publishIg(q){const A=accs.find(x=>x.id===q.accId);if(!A?.token||!
   const p=await api({action:'publish',container});q.state='posted';q.done=true;q.link=p.permalink}
  catch(e){q.state='failed';q.err=e.message}saveP();return true}
 function postNow(i){const q=queue[i];const A=accs.find(x=>x.id===q.accId);
- if(A?.token&&q.mediaUrl){publishIg(q);return}
+ if(canAuto(q)){publishIg(q);return}
  navigator.clipboard?.writeText(q.cap).catch(()=>{});q.done=true;saveP();
  alert(`Caption copied ✔\nNow open ${q.acc} and post your ${q.type}${q.media?' ('+q.media+')':''}.${q.type==='Trial Reel'?'\nTip: turn on "Trial" in Instagram\'s Reel share screen so it is shown to non-followers first.':''}`)}
 function checkDue(){const due=queue.filter(q=>!q.done&&!q.server&&q.at<=Date.now()&&q.state!=='failed');
- due.filter(q=>accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl&&q.state!=='publishing').forEach(publishIg);
- const manual=due.filter(q=>!(accs.find(x=>x.id===q.accId)?.token&&q.mediaUrl));
+ due.filter(q=>canAuto(q)&&q.state!=='publishing').forEach(publishIg);
+ const manual=due.filter(q=>!canAuto(q));
  dueBar.style.display=manual.length?'block':'none';
  dueBar.textContent=manual.length?`⏰ ${manual.length} post(s) due now: ${manual.map(q=>q.acc).join(', ')} — press Copy in the Queue to post.`:'';
  manual.filter(q=>!q.notified).forEach(q=>{q.notified=true;try{Notification.permission==='granted'&&new Notification('InstaPulse: time to post',{body:q.acc+' · '+q.type})}catch{}});LS.set('ip_queue',queue);drawP()}
@@ -432,6 +446,38 @@ async function serverSync(){const byAcc={};queue.filter(q=>q.server&&!q.done&&q.
  saveP()}
 const _sched=schedule;schedule=async function(){await _sched();await serverSchedule();drawP()};
 setInterval(serverSync,60000);serverSync();serverSchedule();
+// ---- Facebook / YouTube / LinkedIn / TikTok ----
+const PFN={facebook:'Facebook',google:'YouTube',linkedin:'LinkedIn',tiktok:'TikTok'};
+async function social(p,token,b){const r=await fetch('/api/social',{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({p,...b})});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
+(async function(){const q=new URLSearchParams(location.hash.slice(1)),p=q.get('oauth_p');if(!p)return;window.history.replaceState(null,'',location.pathname);
+ if(q.get('oauth_error'))return alert(PFN[p]+': '+q.get('oauth_error'));const t=q.get('oauth_token');
+ try{if(p==='facebook'){const {pages}=await social('facebook',t,{action:'accounts'});LS.set('ip_fb',{token:t,pages});
+   pages.forEach(pg=>{accs=accs.filter(a=>a.id!=='fb'+pg.id);accs.push({id:'fb'+pg.id,pf:'Facebook',name:pg.name,token:pg.pageToken,pageId:pg.id})});
+   alert(`Facebook connected: ${pages.length} Page(s)`+(pages.some(x=>x.ig)?' + Instagram research unlocked':''))}
+  else{const P=PFN[p];let name=P;try{const m=await social(p==='google'?'youtube':p,t,{action:'me'});name=m.items?.[0]?.snippet?.title||m.name||m.data?.user?.display_name||P}catch{}
+   accs=accs.filter(a=>!(a.pf===P&&a.name===name));accs.push({id:p+Date.now(),pf:P,name,token:t,refresh:q.get('oauth_refresh')||'',prov:p,at:Date.now()});alert(P+' connected: '+name)}
+  saveP();show('vPlanning')}catch(e){alert(PFN[p]+': '+e.message)}})();
+async function publishOther(q,A){if(q.state==='publishing')return false;q.state='publishing';q.err='';saveP();
+ const p={Facebook:'facebook',YouTube:'youtube',LinkedIn:'linkedin',TikTok:'tiktok'}[A.pf];
+ try{if(!p)throw new Error('Auto-posting is not available for '+A.pf);
+  if(A.refresh&&Date.now()-(A.at||0)>50*60e3){const r=await fetch('/api/oauth?p='+A.prov,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({refresh:A.refresh})});const j=await r.json();if(!r.ok)throw new Error('Reconnect '+A.pf+': '+j.error);A.token=j.token;A.refresh=j.refresh;A.at=Date.now();saveP()}
+  const r=await social(p,A.token,{action:'post',caption:q.cap,mediaUrl:q.mediaUrl,pageId:A.pageId,pageToken:A.token});
+  q.state='posted';q.done=true;q.link=r.url||(r.post_id||r.id?(p==='facebook'?'https://facebook.com/'+(r.post_id||r.id):''):'')}
+ catch(e){q.state='failed';q.err=e.message}saveP();return true}
+// ---- Research (Facebook-Login Instagram APIs) ----
+function fbIg(){const f=LS.get('ip_fb',null);const pg=f?.pages?.find(x=>x.ig);if(!pg)throw new Error('Connect Facebook first (button above) with a Page that has an Instagram Business account linked.');return {token:f.token,igId:pg.ig.id}}
+const mrow=m=>`<tr><td style="text-align:left;max-width:260px;white-space:normal"><a href="${m.permalink}" target="_blank">${esc((m.caption||'(no caption)').slice(0,70))}</a></td><td>${m.media_product_type||m.media_type||''}</td><td>${fmt(m.like_count||0)}</td><td>${fmt(m.comments_count||0)}</td></tr>`;
+async function hashSearch(){hsOut.textContent='⏳ Searching…';try{const {token,igId}=fbIg();const r=await social('facebook',token,{action:'hashtag',tag:hsQ.value,igId});
+ const all=[...r.top,...r.recent];const avgL=all.reduce((s,m)=>s+(m.like_count||0),0)/(all.length||1);
+ hsOut.innerHTML=`<p><b>#${esc(r.tag)}</b> · avg ${fmt(Math.round(avgL))} likes on ${all.length} posts</p><b>Top posts</b><div class="tw"><table><tr><th>Post</th><th>Type</th><th>Likes</th><th>Comments</th></tr>${r.top.map(mrow).join('')}</table></div><b>Recent</b><div class="tw"><table>${r.recent.slice(0,10).map(mrow).join('')}</table></div>`}
+ catch(e){hsOut.textContent='⚠ '+e.message}}
+async function compSearch(){cpOut.textContent='⏳ Analyzing…';try{const {token,igId}=fbIg();const d=await social('facebook',token,{action:'competitor',username:cpQ.value,igId});
+ const ms=d.media?.data||[];const avg=ms.reduce((s,m)=>s+(m.like_count||0)+(m.comments_count||0),0)/(ms.length||1);const er=d.followers_count?avg/d.followers_count*100:0;
+ const reels=ms.filter(m=>m.media_product_type==='REELS').length;
+ cpOut.innerHTML=`<div class="kpis"><div class="card kpi"><div class="l">Followers</div><div class="v">${fmt(d.followers_count)}</div></div><div class="card kpi"><div class="l">Posts</div><div class="v">${fmt(d.media_count)}</div></div><div class="card kpi"><div class="l">Avg eng. rate</div><div class="v">${er.toFixed(2)}%</div></div><div class="card kpi"><div class="l">Reels share</div><div class="v">${Math.round(reels/(ms.length||1)*100)}%</div></div></div>
+  <p class="small">${esc(d.biography||'')}</p><div class="tw"><table><tr><th>Recent post</th><th>Type</th><th>Likes</th><th>Comments</th></tr>${ms.map(mrow).join('')}</table></div>
+  <button style="margin-top:8px" onclick="ask('Compare my account with competitor @${esc(d.username)}: ${fmt(d.followers_count)} followers, ${er.toFixed(2)}% engagement, ${reels} reels in last ${ms.length} posts. What should I copy and what should I do differently?')">🤖 Ask Claude how to beat them</button>`}
+ catch(e){cpOut.textContent='⚠ '+e.message}}
 </script>
 </body>
 </html>
