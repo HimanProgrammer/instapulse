@@ -91,3 +91,10 @@ Planning → **🔗 Connect platforms**. Each needs a free developer app; regist
 
 These platforms auto-post while InstaPulse is open in a tab (Instagram also posts from the server when the browser is closed).
 🔎 **Research**: hashtag top/recent posts (30 hashtags per 7 days) and competitor stats via Business Discovery, with “Ask Claude how to beat them”.
+
+## Legal pages (needed for Meta App Review)
+- Privacy Policy: `/legal/privacy.html`
+- Terms of Service: `/legal/terms.html`
+- Data Deletion instructions: `/legal/data-deletion.html`
+
+Set your business name, city/state and contact e-mail in `legal/site.js` (as on your Udyam certificate). Paste the three URLs into the Meta app → App settings → Basic.

@@ -185,6 +185,7 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
 </aside>
 </main>
 </div>
+<footer style="text-align:center;padding:16px;font-size:13px;color:var(--mut)"><a href="/legal/privacy.html">Privacy Policy</a> · <a href="/legal/terms.html">Terms of Service</a> · <a href="/legal/data-deletion.html">Data Deletion</a></footer>
 <script>
 const METRICS={followers:'Followers',reach:'Reach',impressions:'Impressions',engagement:'Engagement',profileViews:'Profile views'};
 let daily=[],posts=[],metric='followers',charts={},history=[];
@@ -290,7 +291,7 @@ function drawP(){accList.innerHTML=accs.length?accs.map(a=>`${a.pf} · ${esc(a.n
  const now=Date.now();queue.sort((a,b)=>a.at-b.at);
  document.getElementById('queue').innerHTML='<tr><th>When</th><th>Account</th><th>Type</th><th>Caption</th><th>Status</th><th></th></tr>'+queue.map((q,i)=>{const st=q.done?'p':q.at<=now?'d':'s';
   return `<tr><td>${new Date(q.at).toLocaleString([], {dateStyle:'short',timeStyle:'short'})}</td><td>${esc(q.acc)}</td><td>${q.type}</td><td>${esc(q.cap.slice(0,40))}…</td>
-  <td><span class="st ${q.state==='failed'?'f':st}" title="${esc(q.err||'')}">${q.state==='publishing'?'Publishing…':q.state==='failed'?'Failed':st==='p'?(q.link?`<a style="color:#fff" href="${q.link}" target="_blank">Posted ↗</a>`:'Posted'):st==='d'?'Due':'Scheduled'}</span>${q.server?' <span class="small" title="Scheduled on the InstaPulse server — posts even if this browser is closed">☁</span>':''}${q.err?`<div class="small">${esc(q.err)}</div>`:''}</td><td><button onclick="postNow(${i})">${canAuto(q)?'Post now':'Copy'}</button> <button onclick="queue.splice(${i},1);saveP()">✕</button></td></tr>`}).join('')}
+  <td><span class="st ${q.state==='failed'?'f':st}" title="${esc(q.err||'')}">${q.state==='publishing'?'Publishing…':q.state==='failed'?'Failed':st==='p'?(q.link?`<a style="color:#fff" href="${q.link}" target="_blank">Posted ↗</a>`:'Posted'):st==='d'?'Due':'Scheduled'}</span>${q.server?' <span class="small" title="Scheduled on the InstaPulse server — posts even if this browser is closed">☁</span>':''}${q.err?`<div class="small">${esc(q.err)}</div>`:''}</td><td><button onclick="postNow(${i})">${canAuto(q)?'Post now':'Copy'}</button> <button onclick="delQ(${i})">✕</button></td></tr>`}).join('')}
 async function uploadMedia(f){const r=await fetch('/api/upload',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
  if(r.status===501)throw new Error('Media upload is not set up (connect a Vercel Blob store) — paste a public media URL instead.');
  const {upload}=await import('https://cdn.jsdelivr.net/npm/@vercel/blob@0.27.3/client/+esm');
@@ -432,6 +433,7 @@ async function sendDm(cid,to){const i=document.getElementById('dm_'+cid);if(!i.v
 async function aiDm(cid,btn){const i=document.getElementById('dm_'+cid),ctx=btn.closest('.card').innerText.slice(-600);
  try{await claude([{role:'user',content:'Write one short, friendly reply (max 40 words) to the last message in this Instagram DM thread:\n'+ctx}],'You reply to Instagram DMs for a creator/business. Warm, helpful, same language as the customer.',i)}catch(e){alert(e.message)}}
 // ---- Server scheduling (Supabase): posts go out even when the browser is closed ----
+async function delQ(i){const q=queue[i];if(q.server&&!q.done){const A=accs.find(x=>x.id===q.accId);try{await srv(A.token,{action:'cancel',id:q.jobId})}catch(e){if(!confirm('Could not cancel on the server ('+e.message+'). Remove from the list anyway?'))return}}queue.splice(i,1);saveP()}
 const SERVER='https://oyzlwesqyhsovnwwaxhi.supabase.co/functions/v1/ip-api';
 async function srv(token,b){const r=await fetch(SERVER,{method:'POST',headers:{'content-type':'application/json','x-ig-token':token},body:JSON.stringify(b)});const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j}
 async function serverSchedule(){const fresh=queue.filter(q=>!q.server&&!q.done&&!q.state&&q.mediaUrl&&accs.find(x=>x.id===q.accId)?.token);
