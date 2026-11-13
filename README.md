@@ -54,3 +54,40 @@ Setup:
    `https://instapulse-lime.vercel.app/api/mcp?key=YOUR_MCP_KEY`
 
 Keep the URL private: anyone with it can read your analytics. Tokens expire after 60 days; copy fresh ones then.
+
+## Posting & scheduling to Instagram (Graph API)
+Instagram accounts logged in through **Login with Instagram** can publish directly from the Planner:
+- Types: Reel, **Trial Reel** (shown to non-followers first), Post (image or video), Story.
+- **Post now** publishes immediately; scheduled posts auto-publish at their time **while InstaPulse is open in a browser tab** (or the next time you open it). Other platforms still get a reminder + copied caption.
+- Instagram needs the media at a **public URL**: paste one, or connect a **Vercel Blob** store (Vercel → Storage → Create → Blob → connect to instapulse) so file uploads work.
+- Meta app: the login now also asks for `instagram_business_content_publish`. Log in again after updating so tokens carry it. Limits: 100 API-published posts per account per 24 h; Reels 3–90 s, MP4/MOV.
+
+## Inbox, calendar, hashtag tracker, PDF report
+- **💬 Inbox**: comments on your recent posts for the open (logged-in) account; reply, ✨ draft a reply with Claude, hide/unhide. Needs `instagram_business_manage_comments` (requested at login — log in again). DMs are not included (they need Meta's messaging permission and App Review).
+- **📆 Content calendar** (Planning tab): month view of every scheduled/posted item.
+- **#️⃣ Hashtag tracker** (Analytics → Account): average reach, interactions and engagement rate per hashtag used in your captions.
+- **📄 PDF report**: prints the dashboard for the current account and period; choose "Save as PDF".
+
+## Server scheduling (posts go out even when your browser is closed)
+Scheduling for logged-in Instagram accounts is handled by a Supabase project (`instapulse`, region ap-south-1):
+- Edge Function `ip-api` (`supabase/functions/ip-api/index.ts`): `schedule`, `list`, `cancel` (authenticated by the caller's Instagram token) and `cron`.
+- Table `scheduled_posts` (RLS on, no public policies: tokens are only readable by the function).
+- `pg_cron` job `instapulse-publish` calls the function every minute; it creates the media container, waits for processing and publishes.
+Queue items scheduled this way show ☁. If the server can't be reached, the browser falls back to publishing while the page is open.
+
+## Direct messages
+Inbox → ✉️ Direct messages lists recent Instagram conversations; send replies or ✨ draft one with Claude. Requires `instagram_business_manage_messages` (requested at login). Instagram only allows replies within 24 h of the customer's last message. For other people's accounts (selling InstaPulse), Meta App Review for messaging is required.
+
+## Facebook, YouTube, LinkedIn, TikTok + hashtag research & competitor analysis
+Planning → **🔗 Connect platforms**. Each needs a free developer app; register the redirect URI
+`https://instapulse-lime.vercel.app/api/oauth?p=<facebook|google|linkedin|tiktok>` and add its keys in Vercel:
+
+| Platform | Vercel env vars | Where | Notes |
+|---|---|---|---|
+| Facebook Pages + IG research | `FB_APP_ID`, `FB_APP_SECRET` | developers.facebook.com (same Meta app, add **Facebook Login for Business**) | Posts to Pages; unlocks 🔎 Research. Instagram must be Business/Creator and linked to a Page. Hashtag search needs the *Instagram Public Content Access* feature. |
+| YouTube | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | console.cloud.google.com → enable YouTube Data API v3 → OAuth client (Web) | Uploads from the media URL. Unverified apps upload as private until Google audits the app. |
+| LinkedIn | `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` | linkedin.com/developers → products “Sign In with LinkedIn (OpenID)” + “Share on LinkedIn” | Text post, with the media URL attached as a link. |
+| TikTok | `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET` | developers.tiktok.com → Content Posting API | Until TikTok audits the app, posts are private (SELF_ONLY). |
+
+These platforms auto-post while InstaPulse is open in a tab (Instagram also posts from the server when the browser is closed).
+🔎 **Research**: hashtag top/recent posts (30 hashtags per 7 days) and competitor stats via Business Discovery, with “Ask Claude how to beat them”.
