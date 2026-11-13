@@ -61,3 +61,9 @@ Instagram accounts logged in through **Login with Instagram** can publish direct
 - **Post now** publishes immediately; scheduled posts auto-publish at their time **while InstaPulse is open in a browser tab** (or the next time you open it). Other platforms still get a reminder + copied caption.
 - Instagram needs the media at a **public URL**: paste one, or connect a **Vercel Blob** store (Vercel → Storage → Create → Blob → connect to instapulse) so file uploads work.
 - Meta app: the login now also asks for `instagram_business_content_publish`. Log in again after updating so tokens carry it. Limits: 100 API-published posts per account per 24 h; Reels 3–90 s, MP4/MOV.
+
+## Inbox, calendar, hashtag tracker, PDF report
+- **💬 Inbox**: comments on your recent posts for the open (logged-in) account; reply, ✨ draft a reply with Claude, hide/unhide. Needs `instagram_business_manage_comments` (requested at login — log in again). DMs are not included (they need Meta's messaging permission and App Review).
+- **📆 Content calendar** (Planning tab): month view of every scheduled/posted item.
+- **#️⃣ Hashtag tracker** (Analytics → Account): average reach, interactions and engagement rate per hashtag used in your captions.
+- **📄 PDF report**: prints the dashboard for the current account and period; choose "Save as PDF".

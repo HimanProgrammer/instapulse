@@ -53,17 +53,25 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
 .menu{position:relative}.menu .dd{display:none;position:absolute;right:0;top:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;z-index:5;min-width:130px}
 .menu.open .dd{display:block}.menu .dd button{display:block;width:100%;border:0;text-align:left}
 .side .sub-acc{padding:7px 12px 7px 30px;font-size:13px}.side .sub-acc.add{color:var(--acc)}.side .x{margin-left:auto;opacity:.6}
+#cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}#cal .d{min-height:78px;border:1px solid var(--line);border-radius:8px;padding:4px;font-size:11px;overflow:hidden}
+#cal .d.today{border-color:var(--acc)}#cal .d .n{font-weight:700;color:var(--mut)}#cal .ev{background:#7048e8;color:#fff;border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#cal .ev.ok{background:#2f9e44}#cal .ev.bad{background:#e03131}#cal .h{font-size:11px;text-align:center;color:var(--mut)}
+.cm{border-bottom:1px solid var(--line);padding:8px 0}.cm .r{margin-left:18px;color:var(--mut)}
+#printHead{display:none}
+@media print{header.top,.side,aside,.subtabs,.tabs,#dueBar,.view:not(#vAnalytics){display:none!important}.shell,main{display:block}
+ .sub{display:block!important}#printHead{display:block;margin-bottom:12px}.card{break-inside:avoid}body{background:#fff}}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="logo">◉◉ Insta<span>Pulse</span></div>
   <nav class="topnav">
-    <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vLab">🧪 Creator Lab</button>
+    <button class="on" data-v="vAnalytics">📊 Analytics</button><button data-v="vPlanning">📅 Planning</button><button data-v="vInbox">💬 Inbox</button><button data-v="vLab">🧪 Creator Lab</button>
   </nav>
   <div class="ctrls">
     <select id="range"><option value="7">Last 7 days</option><option value="28" selected>Last 28 days</option><option value="90">Last 90 days</option></select>
     <input type="file" id="csv" accept=".csv,.json" hidden><button onclick="csv.click()">⬆ Import</button>
+    <button onclick="pdfReport()">📄 PDF report</button>
     <button onclick="settings()">⚙ Claude key</button>
   </div>
 </header>
@@ -73,6 +81,7 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
 <main>
 <section>
  <div class="view" id="vAnalytics">
+  <div id="printHead"><h2>InstaPulse report</h2><div id="printSub" class="small"></div></div>
   <div class="subtabs" id="subtabs"><button class="on" data-s="sCommunity">COMMUNITY</button><button data-s="sAccount">ACCOUNT</button><button data-s="sPosts">POSTS</button><button data-s="sReels">REELS</button></div>
   <div id="pfNote" class="card small" style="display:none;margin-bottom:12px"></div>
   <div class="sub" id="sCommunity">
@@ -80,6 +89,7 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
    <div class="card" style="margin-bottom:16px"><div class="tabs" id="tabs"></div><canvas id="main"></canvas></div>
   </div>
   <div class="sub" id="sAccount" hidden>
+   <div class="card" style="margin-bottom:16px"><h3>#️⃣ Hashtag tracker <span class="small">— how each hashtag in your captions performs</span></h3><div class="tw"><table id="htags"></table></div></div>
    <div class="grid2">
     <div class="card"><h3>Engagement by content type</h3><canvas id="types"></canvas></div>
     <div class="card"><h3>Best days to post (avg engagement)</h3><canvas id="days"></canvas></div>
@@ -122,6 +132,11 @@ header.top{background:#241a3a;color:#fff;border:0;padding:10px 20px}header.top s
     <h3 style="margin-top:16px">Queue</h3><div class="tw"><table id="queue"></table></div>
     <div class="small" style="margin-top:6px">When a post is due you get an alert with the caption copied — post it in one tap. Auto-publishing needs a connected backend (see README).</div>
    </div></div></div>
+ </div>
+ <div class="card" id="calCard" style="margin-top:16px"></div>
+ <div class="view" id="vInbox" hidden>
+  <div class="card"><h3>💬 Inbox — comments on your posts <button style="float:right" onclick="loadInbox()">⟳ Refresh</button></h3>
+   <div id="inbox" class="small">Open a logged-in Instagram account, then press Refresh.</div></div>
  </div>
  <div class="view" id="vLab" hidden>
   <div class="lab">
@@ -224,7 +239,7 @@ async function claude(messages,system,out){if(!key()){settings();if(!key())throw
  if(!r.ok)throw new Error((await r.json().catch(()=>({}))).error?.message||r.status);
  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',acc='';
  for(;;){const {done,value}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});const ls=buf.split('\n');buf=ls.pop();
-  for(const l of ls){if(!l.startsWith('data:'))continue;try{const e=JSON.parse(l.slice(5));if(e.type==='content_block_delta'&&e.delta.text){acc+=e.delta.text;out.tagName==="TEXTAREA"?out.value=acc:out.textContent=acc}}catch{}}}
+  for(const l of ls){if(!l.startsWith('data:'))continue;try{const e=JSON.parse(l.slice(5));if(e.type==='content_block_delta'&&e.delta.text){acc+=e.delta.text;/^(TEXTAREA|INPUT)$/.test(out.tagName)?out.value=acc:out.textContent=acc}}catch{}}}
  return acc}
 const COACH='You are a blunt, practical Instagram Reels growth coach. Use short bullet points and concrete actions. No fluff.';
 async function doctor(){const f=shot.files[0];if(!f)return alert('Choose a screenshot first');docOut.textContent='Reading screenshot…';
@@ -357,6 +372,39 @@ async function syncIg(id){const A=accs.find(x=>x.id===id);pfNote.style.display='
 (function(){const q=new URLSearchParams(location.hash.slice(1));if(q.get('ig_error'))alert('Instagram login failed: '+q.get('ig_error'));
  const t=q.get('ig_token');if(!t){return}window.history.replaceState(null,'',location.pathname);
  const id='ig'+q.get('ig_user');accs=accs.filter(a=>a.id!==id);accs.push({id,pf:'Instagram',name:'@'+(q.get('ig_name')||'instagram'),token:t});saveP();syncIg(id)})();
+// ---- Calendar ----
+let calM=new Date();calM.setDate(1);
+function drawCal(){if(typeof calCard==='undefined')return;const y=calM.getFullYear(),m=calM.getMonth(),first=new Date(y,m,1).getDay(),n=new Date(y,m+1,0).getDate(),today=new Date().toDateString();
+ let cells=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="h">${d}</div>`).join('')+'<div></div>'.repeat(first);
+ for(let d=1;d<=n;d++){const ds=new Date(y,m,d);const ev=queue.filter(q=>new Date(q.at).toDateString()===ds.toDateString());
+  cells+=`<div class="d ${ds.toDateString()===today?'today':''}"><div class="n">${d}</div>${ev.map(q=>`<div class="ev ${q.state==='failed'?'bad':q.done?'ok':''}" title="${esc(q.acc+' · '+q.type+' · '+q.cap)}">${new Date(q.at).toTimeString().slice(0,5)} ${esc(q.acc.split(' ').pop())}</div>`).join('')}</div>`}
+ calCard.innerHTML=`<h3>📆 Content calendar <span style="float:right"><button onclick="calM.setMonth(calM.getMonth()-1);drawCal()">‹</button> ${calM.toLocaleDateString([], {month:'long',year:'numeric'})} <button onclick="calM.setMonth(calM.getMonth()+1);drawCal()">›</button></span></h3><div id="cal">${cells}</div>`}
+const _drawP=drawP;drawP=function(){_drawP();drawCal()};drawCal();
+// ---- Hashtag tracker ----
+function drawTags(){if(typeof htags==='undefined')return;const from=win()[0]?.date||'',T={};
+ posts.filter(p=>p.date>=from).forEach(p=>{const tags=[...new Set((String(p.caption).match(/#[\p{L}\p{N}_]+/gu)||[]).map(t=>t.toLowerCase()))];
+  tags.forEach(t=>{const o=T[t]??={n:0,reach:0,int:0};o.n++;o.reach+=+p.reach||0;o.int+=(p.likes+p.comments+p.saves+p.shares)||0})});
+ const rows=Object.entries(T).sort((a,b)=>b[1].reach/b[1].n-a[1].reach/a[1].n);
+ htags.innerHTML='<tr><th>Hashtag</th><th>Posts</th><th>Avg reach</th><th>Avg interactions</th><th>Eng. rate</th></tr>'+(rows.length?rows.slice(0,30).map(([t,o])=>`<tr><td>${esc(t)}</td><td>${o.n}</td><td>${fmt(Math.round(o.reach/o.n))}</td><td>${fmt(Math.round(o.int/o.n))}</td><td>${(o.int/(o.reach||1)*100).toFixed(2)}%</td></tr>`).join(''):'<tr><td colspan="5" class="small" style="text-align:left">No hashtags in captions for this period.</td></tr>')}
+const _r3=render;render=function(){_r3();drawTags()};
+// ---- PDF report ----
+function pdfReport(){show('vAnalytics');const a=accs.find(x=>x.id===curAcc);printSub.textContent=`${a?a.name:'Demo account'} · last ${days()} days · generated ${new Date().toLocaleString()}`;
+ document.querySelectorAll('.sub').forEach(x=>x.hidden=false);setTimeout(()=>{render();setTimeout(()=>{window.print();subtabs.querySelector('.on')?.click()},400)},50)}
+// ---- Inbox ----
+function igApi(path,b){const A=accs.find(x=>x.id===curAcc);if(!A?.token)return Promise.reject(new Error('Open a logged-in Instagram account first (sidebar → 🔐 Login with Instagram).'));
+ return fetch(path,{method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+A.token},body:JSON.stringify(b)}).then(async r=>{const j=await r.json();if(!r.ok)throw new Error(j.error||r.status);return j})}
+async function loadInbox(){inbox.textContent='⏳ Loading comments…';
+ try{const {items}=await igApi('/api/comments',{action:'list'});
+  inbox.innerHTML=items.length?items.map(it=>`<div class="card" style="margin:10px 0"><b><a href="${it.media.permalink}" target="_blank">${esc(it.media.caption||'Post')} ↗</a></b>`+it.comments.map(c=>`<div class="cm"><b>@${esc(c.username)}</b> ${esc(c.text)} <span class="small">${new Date(c.timestamp).toLocaleString()}${c.hidden?' · hidden':''}</span>
+   ${(c.replies?.data||[]).map(r=>`<div class="r">↳ <b>@${esc(r.username)}</b> ${esc(r.text)}</div>`).join('')}
+   <div class="row" style="margin-top:4px"><input id="rp_${c.id}" placeholder="Reply…" style="flex:1"><button onclick="replyC('${c.id}')">Reply</button><button onclick="aiReply('${c.id}',this)" title="Draft with Claude">✨</button><button onclick="hideC('${c.id}',${!c.hidden})">${c.hidden?'Unhide':'Hide'}</button></div></div>`).join('')+'</div>').join(''):'No comments on your recent posts.'}
+ catch(e){inbox.textContent='⚠ '+e.message}}
+async function replyC(id){const i=document.getElementById('rp_'+id);if(!i.value.trim())return;try{await igApi('/api/comments',{action:'reply',id,message:i.value});loadInbox()}catch(e){alert(e.message)}}
+async function hideC(id,hide){try{await igApi('/api/comments',{action:'hide',id,hide});loadInbox()}catch(e){alert(e.message)}}
+async function aiReply(id,btn){const i=document.getElementById('rp_'+id),c=btn.closest('.cm').firstChild.parentNode.textContent.slice(0,300);
+ try{await claude([{role:'user',content:'Write one short, friendly Instagram reply (max 25 words, no hashtags) to this comment: '+c}],'You reply to Instagram comments for a creator. Warm, natural, same language as the comment.',i)}catch(e){alert(e.message)}}
+document.querySelector('.topnav').addEventListener('click',e=>{if(e.target.closest('[data-v=vInbox]')&&!inbox.dataset.loaded&&accs.find(x=>x.id===curAcc)?.token){inbox.dataset.loaded=1;loadInbox()}});
+render();
 </script>
 </body>
 </html>
